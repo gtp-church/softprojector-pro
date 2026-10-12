@@ -1,0 +1,101 @@
+************************************* Invoked: Пт авг 11 15:48:44 2023
+[0] Arguments:  C:\Users\28796\Downloads\SoftProjector_2.1_WinInstaller.exe
+[7] Operations sanity check succeeded.
+[7783] created question message box cancelInstallation: 'Вопрос', Выйти из установщика?
+[42438] Tmp and install folder are on the same volume. Volume mount point: "C:\\" Free space available: "182.79 ГБ"
+[42438] Installation space required: "39.87 МБ" Temporary space required: "0.00 байт(ов)" Local repository size: "0.00 байт(ов)"
+[43434] backup  operation: Mkdir
+[43434] \t- arguments: C:/Users/28796/SoftProjector
+[43434] Done
+[43434] perform  operation: Mkdir
+[43434] \t- arguments: C:/Users/28796/SoftProjector
+[43435] Done
+[43435] Install size: 2 components
+[43452] backup SoftProjector operation: Extract
+[43452] \t- arguments: installer://SoftProjector/2.1audio.7z, C:\\Users\\28796\\SoftProjector
+[43452] Done
+[43452] perform SoftProjector operation: Extract
+[43452] \t- arguments: installer://SoftProjector/2.1audio.7z, C:\\Users\\28796\\SoftProjector
+[43457] Done
+[43457] backup SoftProjector operation: Extract
+[43457] \t- arguments: installer://SoftProjector/2.1bearer.7z, C:\\Users\\28796\\SoftProjector
+[43457] Done
+[43457] perform SoftProjector operation: Extract
+[43457] \t- arguments: installer://SoftProjector/2.1bearer.7z, C:\\Users\\28796\\SoftProjector
+[43463] Done
+[43463] backup SoftProjector operation: Extract
+[43463] \t- arguments: installer://SoftProjector/2.1content.7z, C:\\Users\\28796\\SoftProjector
+[43463] Done
+[43463] perform SoftProjector operation: Extract
+[43463] \t- arguments: installer://SoftProjector/2.1content.7z, C:\\Users\\28796\\SoftProjector
+[44135] Done
+[44135] backup SoftProjector operation: Extract
+[44135] \t- arguments: installer://SoftProjector/2.1iconengines.7z, C:\\Users\\28796\\SoftProjector
+[44135] Done
+[44135] perform SoftProjector operation: Extract
+[44135] \t- arguments: installer://SoftProjector/2.1iconengines.7z, C:\\Users\\28796\\SoftProjector
+[44139] Done
+[44140] backup SoftProjector operation: Extract
+[44140] \t- arguments: installer://SoftProjector/2.1imageformats.7z, C:\\Users\\28796\\SoftProjector
+[44140] Done
+[44140] perform SoftProjector operation: Extract
+[44140] \t- arguments: installer://SoftProjector/2.1imageformats.7z, C:\\Users\\28796\\SoftProjector
+[44197] Done
+[44197] backup SoftProjector operation: Extract
+[44197] \t- arguments: installer://SoftProjector/2.1mediaservice.7z, C:\\Users\\28796\\SoftProjector
+[44197] Done
+[44197] perform SoftProjector operation: Extract
+[44197] \t- arguments: installer://SoftProjector/2.1mediaservice.7z, C:\\Users\\28796\\SoftProjector
+[44208] Done
+[44208] backup SoftProjector operation: Extract
+[44208] \t- arguments: installer://SoftProjector/2.1platforms.7z, C:\\Users\\28796\\SoftProjector
+[44208] Done
+[44208] perform SoftProjector operation: Extract
+[44208] \t- arguments: installer://SoftProjector/2.1platforms.7z, C:\\Users\\28796\\SoftProjector
+[44245] Done
+[44246] backup SoftProjector operation: Extract
+[44246] \t- arguments: installer://SoftProjector/2.1printsupport.7z, C:\\Users\\28796\\SoftProjector
+[44246] Done
+[44246] perform SoftProjector operation: Extract
+[44246] \t- arguments: installer://SoftProjector/2.1printsupport.7z, C:\\Users\\28796\\SoftProjector
+[44249] Done
+[44250] backup SoftProjector operation: Extract
+[44250] \t- arguments: installer://SoftProjector/2.1qmltooling.7z, C:\\Users\\28796\\SoftProjector
+[44250] Done
+[44250] perform SoftProjector operation: Extract
+[44250] \t- arguments: installer://SoftProjector/2.1qmltooling.7z, C:\\Users\\28796\\SoftProjector
+[44256] Done
+[44256] backup SoftProjector operation: Extract
+[44256] \t- arguments: installer://SoftProjector/2.1QtMultimedia.7z, C:\\Users\\28796\\SoftProjector
+[44256] Done
+[44257] perform SoftProjector operation: Extract
+[44257] \t- arguments: installer://SoftProjector/2.1QtMultimedia.7z, C:\\Users\\28796\\SoftProjector
+[44267] Done
+[44267] backup SoftProjector operation: Extract
+[44267] \t- arguments: installer://SoftProjector/2.1QtQuick.2.7z, C:\\Users\\28796\\SoftProjector
+[44267] Done
+[44267] perform SoftProjector operation: Extract
+[44267] \t- arguments: installer://SoftProjector/2.1QtQuick.2.7z, C:\\Users\\28796\\SoftProjector
+[44274] Done
+[44274] backup SoftProjector operation: Extract
+[44274] \t- arguments: installer://SoftProjector/2.1sqldrivers.7z, C:\\Users\\28796\\SoftProjector
+[44274] Done
+[44274] perform SoftProjector operation: Extract
+[44274] \t- arguments: installer://SoftProjector/2.1sqldrivers.7z, C:\\Users\\28796\\SoftProjector
+[44300] Done
+[44301] backup SoftProjector operation: License
+[44301] \t- arguments: 
+[44301] Done
+[44301] perform SoftProjector operation: License
+[44301] \t- arguments: 
+[44303] Done
+[44303] backup SoftProjector.translations operation: Extract
+[44303] \t- arguments: installer://SoftProjector.translations/2translations.7z, C:\\Users\\28796\\SoftProjector
+[44303] Done
+[44303] perform SoftProjector.translations operation: Extract
+[44304] \t- arguments: installer://SoftProjector.translations/2translations.7z, C:\\Users\\28796\\SoftProjector
+[44315] Done
+[44320] Writing maintenance tool: "C:\\Users\\28796\\SoftProjector/maintenancetool.exe.new"
+[44361] Wrote permissions for maintenance tool.
+[44469] Maintenance tool restart: false.
+[44470] SHOW FINISHED PAGE
