@@ -1,0 +1,137 @@
+# Builds SoftProjector for Windows from source/ and commits the ready-to-run
+# program into the repository root, so the church computer only needs `git pull`.
+#
+# Only files listed in app-files.txt are replaced. User data (spData.sqlite,
+# BibleModules, SongModules) is never touched.
+
+name: Build SoftProjector
+
+on:
+  push:
+    paths:
+      - 'source/**'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  QT_VERSION: 5.15.2
+  QT_ARCH: win32_mingw81
+  MINGW_TOOL: qt.tools.win32_mingw810
+
+jobs:
+  build:
+    runs-on: windows-2022
+    outputs:
+      source-tree: ${{ steps.tree.outputs.hash }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: tree
+        shell: bash
+        run: echo "hash=$(git rev-parse HEAD:source)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cache Qt
+        id: cache-qt
+        uses: actions/cache@v4
+        with:
+          path: C:\Qt
+          key: qt-${{ env.QT_VERSION }}-${{ env.QT_ARCH }}-${{ env.MINGW_TOOL }}
+
+      - name: Install Qt and MinGW
+        if: steps.cache-qt.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          pip install aqtinstall==3.3.0
+          aqt install-qt windows desktop $env:QT_VERSION $env:QT_ARCH -O C:\Qt
+          aqt install-tool windows desktop tools_mingw $env:MINGW_TOOL -O C:\Qt
+
+      - name: Build
+        shell: pwsh
+        run: |
+          $env:PATH = "C:\Qt\$env:QT_VERSION\mingw81_32\bin;C:\Qt\Tools\mingw810_32\bin;$env:PATH"
+          cd source
+          qmake softProjector.pro "CONFIG+=release" "CONFIG-=debug_and_release"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          mingw32-make -j4
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          lrelease softProjector.pro
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - name: Collect program files
+        shell: pwsh
+        run: |
+          $env:PATH = "C:\Qt\$env:QT_VERSION\mingw81_32\bin;C:\Qt\Tools\mingw810_32\bin;$env:PATH"
+          $dist = "$env:RUNNER_TEMP\dist"
+          New-Item -ItemType Directory -Force "$dist\translations" | Out-Null
+          Copy-Item source\win32_build\bin\SoftProjector.exe $dist
+          windeployqt --release --compiler-runtime --no-translations --qmldir source "$dist\SoftProjector.exe"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          Copy-Item source\translations\softpro_*.qm "$dist\translations"
+          Copy-Item source\translations\flag_*.png "$dist\translations"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SoftProjector-windows
+          path: ${{ runner.temp }}\dist
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: SoftProjector-windows
+          path: ${{ runner.temp }}/dist
+
+      - name: Commit program files
+        env:
+          BUILT_TREE: ${{ needs.build.outputs.source-tree }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [ "$(git rev-parse HEAD:source)" != "$BUILT_TREE" ]; then
+            echo "source/ changed on $BRANCH since this build started; the newer run will publish."
+            exit 0
+          fi
+          if grep -qx "# source-tree: $BUILT_TREE" app-files.txt; then
+            echo "Program files are already built from this source."
+            exit 0
+          fi
+
+          # Remove the previous build, then put the new one in place
+          grep -v '^#' app-files.txt | while IFS= read -r f; do
+            git rm -q --ignore-unmatch -- "$f"
+          done
+          cp -R "$RUNNER_TEMP/dist/." .
+          {
+            echo "# Program files built by .github/workflows/build.yml. Do not edit by hand."
+            echo "# source-tree: $BUILT_TREE"
+            (cd "$RUNNER_TEMP/dist" && find . -type f | sed 's|^\./||' | LC_ALL=C sort)
+          } > app-files.txt
+          grep -v '^#' app-files.txt | tr '\n' '\0' | xargs -0 git add -f --
+          git add app-files.txt
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "Build SoftProjector from ${GITHUB_SHA::7}"
+          for attempt in 1 2 3; do
+            git pull -q --rebase origin "$BRANCH" && git push -q origin "HEAD:$BRANCH" && exit 0
+            sleep 5
+          done
+          exit 1
