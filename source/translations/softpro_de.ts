@@ -3267,6 +3267,18 @@ Notizen:
         <source>Apply</source>
         <translation>Übernehmen</translation>
     </message>
+    <message>
+        <source>Shortcuts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The same keys are assigned to several commands:
+
+%1
+
+Change them and try again.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SlideShowEditor</name>
@@ -3877,6 +3889,166 @@ Bitte versuchen Sie, ein Upgrade Ihrer Version von softProjector zu machen.</tra
         <source>Notes:</source>
         <comment>Notes to songs</comment>
         <translation>Notizen:</translation>
+    </message>
+    <message>
+        <source>Screen</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show on the screens</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hide (show the passive screen)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Clear the text</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Turn the screens on or off</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Go live from the current tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Next verse, stanza or slide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Previous verse, stanza or slide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>First verse, stanza or slide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Last verse, stanza or slide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tabs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bible tab, find a book</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Search the Bible</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Next Bible translation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Songs tab, find a song</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pictures tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Media tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Announcements tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Service schedule</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add to the schedule</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove from the schedule</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Next schedule item on the screens</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Previous schedule item on the screens</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New schedule</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open schedule</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save schedule</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Print schedule</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Video</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Play or pause the video</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Stop the video</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New item (song, slide show, announcement)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit the selected item</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy the selected item</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete the selected item</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Print</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Manage database</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Help</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Exit</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -5118,6 +5290,29 @@ Bitte versuchen Sie, ein Upgrade Ihrer Version von softProjector zu machen.</tra
         <location filename="../managedata.cpp" line="255"/>
         <source>Comments</source>
         <translation>Kommentare</translation>
+    </message>
+</context>
+<context>
+    <name>ShortcutSettingWidget</name>
+    <message>
+        <source>Command</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Keys %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click a field and press the keys. Keys work while the SoftProjector window is active.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Restore Defaults</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Clear</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

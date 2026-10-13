@@ -29,6 +29,7 @@
 #include "songsettingwidget.hpp"
 #include "announcementsettingwidget.hpp"
 #include "picturesettingwidget.hpp"
+#include "shortcutsettingwidget.hpp"
 
 namespace Ui {
 class SettingsDialog;
@@ -46,12 +47,14 @@ public:
 public slots:
     void loadSettings(GeneralSettings& sets, Theme &thm, SlideShowSettings &ssets,
                       BibleVersionSettings &bsets, BibleVersionSettings &bsets2);
+    void setShortcuts(const QList<ShortcutCommand> &commands);
 
 signals:
     void updateSettings(GeneralSettings& sets, Theme &thm, SlideShowSettings &ssets,
                         BibleVersionSettings& bsets, BibleVersionSettings& bsets2);
     void positionsDisplayWindow();
     void updateScreen();
+    void updateShortcuts(ShortcutKeys keys);
 
 private:
     Ui::SettingsDialog *ui;
@@ -72,6 +75,8 @@ private:
     SongSettingWidget *songSettingswidget;
     PictureSettingWidget *pictureSettingWidget;
     AnnouncementSettingWidget *announcementSettingswidget;
+    ShortcutSettingWidget *shortcutSettingWidget;
+    QListWidgetItem *shortcutsItem;
 
     QPushButton *btnOk;
     QPushButton *btnCancel;
@@ -81,7 +86,7 @@ private slots:
     void on_listWidget_currentRowChanged(int currentRow);
     void setUseDispScreen2(bool toUse);
     void on_buttonBox_clicked(QAbstractButton *button);
-    void applySettings();
+    bool applySettings();
     void changeTheme(int theme_id);
     void getThemes();
     void setThemes();

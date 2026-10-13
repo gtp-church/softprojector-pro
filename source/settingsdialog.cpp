@@ -40,6 +40,11 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     ui->scrollAreaPicture->setWidget(pictureSettingWidget);
     ui->scrollAreaAnnouncementSettings->setWidget(announcementSettingswidget);
 
+    // Keyboard shortcuts page, last in the list
+    shortcutSettingWidget = new ShortcutSettingWidget;
+    ui->stackedWidget->addWidget(shortcutSettingWidget);
+    shortcutsItem = new QListWidgetItem(QIcon(":/icons/icons/settings.png"), tr("Shortcuts"), ui->listWidget);
+
     btnOk = new QPushButton(tr("OK"));
     btnCancel = new QPushButton(tr("Cancel"));
     btnApply = new QPushButton(tr("Apply"));
@@ -89,10 +94,16 @@ SettingsDialog::~SettingsDialog()
     delete bibleSettingswidget;
     delete songSettingswidget;
     delete announcementSettingswidget;
+    delete shortcutSettingWidget;
 
     delete btnOk;
     delete btnCancel;
     delete btnApply;
+}
+
+void SettingsDialog::setShortcuts(const QList<ShortcutCommand> &commands)
+{
+    shortcutSettingWidget->setCommands(commands);
 }
 
 void SettingsDialog::changeEvent(QEvent *e)
@@ -101,6 +112,7 @@ void SettingsDialog::changeEvent(QEvent *e)
     switch ( e->type() ) {
     case QEvent::LanguageChange:
         ui->retranslateUi(this);
+        shortcutsItem->setText(tr("Shortcuts"));
         break;
     default:
         break;
@@ -124,8 +136,8 @@ void SettingsDialog::on_buttonBox_clicked(QAbstractButton *button)
 {
     if(button == btnOk)
     {
-        applySettings();
-        close();
+        if(applySettings())
+            close();
     }
     else if(button == btnCancel)
         close();
@@ -133,8 +145,20 @@ void SettingsDialog::on_buttonBox_clicked(QAbstractButton *button)
         applySettings();
 }
 
-void SettingsDialog::applySettings()
+bool SettingsDialog::applySettings()
 {
+    // The same keys on several commands would not work at all
+    QString conflicts = shortcutSettingWidget->findConflicts();
+    if(!conflicts.isEmpty())
+    {
+        ui->listWidget->setCurrentItem(shortcutsItem);
+        QMessageBox::warning(this, tr("Shortcuts"),
+                             tr("The same keys are assigned to several commands:\n\n%1\n\n"
+                                "Change them and try again.").arg(conflicts));
+        return false;
+    }
+    emit updateShortcuts(shortcutSettingWidget->getKeys());
+
     gsettings = generalSettingswidget->getSettings();
     bibleSettingswidget->getBibleVersions(bsettings,bsettings2);
     pictureSettingWidget->getSettings(ssettings);
@@ -161,6 +185,7 @@ void SettingsDialog::applySettings()
     is_always_on_top = gsettings.displayIsOnTop;
     current_display_screen = gsettings.displayScreen;
     currentDisplayScreen2 = gsettings.displayScreen2;
+    return true;
 }
 
 void SettingsDialog::getThemes()

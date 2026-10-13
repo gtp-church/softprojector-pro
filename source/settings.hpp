@@ -333,6 +333,8 @@ public:
     BibleVersionSettings bibleSets;
     BibleVersionSettings bibleSets2;
     SlideShowSettings slideSets;
+    // Keys of commands that do not use their default keys: command id -> keys in portable text
+    QMap<QString, QString> shortcuts;
 
     bool isSpClosing;
 

@@ -865,6 +865,16 @@ void Settings::loadSettings()
                     bibleSets2.trinaryBible = v;
             }
         }
+        else if(t == "shortcuts")
+        {
+            // Lines "commandId = Ctrl+N; F5". Split at the first "=" since keys may contain one.
+            foreach(const QString &line, sets.split("\n", QString::SkipEmptyParts))
+            {
+                int eq = line.indexOf('=');
+                if(eq > 0)
+                    shortcuts.insert(line.left(eq).trimmed(), line.mid(eq + 1).trimmed());
+            }
+        }
         else if(t == "pix")
         {
             dataPixOk = true;
@@ -955,6 +965,20 @@ void Settings::saveSettings()
     sq.exec(QString("UPDATE Settings SET sets = '%1' WHERE type = 'bible1'").arg(b1set));
     sq.exec(QString("UPDATE Settings SET sets = '%1' WHERE type = 'bible2'").arg(b2set));
     sq.exec(QString("UPDATE Settings SET sets = '%1' WHERE type = 'pix'").arg(pset));
+
+    // Shortcut keys were added in a later version, so the row may not exist yet
+    QString shset;
+    for(auto it = shortcuts.constBegin(); it != shortcuts.constEnd(); ++it)
+        shset += it.key() + " = " + it.value() + "\n";
+    sq.prepare("UPDATE Settings SET sets = ? WHERE type = 'shortcuts'");
+    sq.addBindValue(shset);
+    sq.exec();
+    if(sq.numRowsAffected() < 1)
+    {
+        sq.prepare("INSERT INTO Settings (type, sets) VALUES ('shortcuts', ?)");
+        sq.addBindValue(shset);
+        sq.exec();
+    }
 }
 
 void Settings::saveNewSettings()

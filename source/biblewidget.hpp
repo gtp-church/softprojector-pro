@@ -62,6 +62,7 @@ public slots:
     bool isVerseSelected();
     void setBibleBookActive();
     void setBibleSearchActive();
+    void selectNextBibleVersion();
 
 protected:
     virtual void changeEvent(QEvent *e);

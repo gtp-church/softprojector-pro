@@ -40,6 +40,7 @@
 #include "videoinfo.hpp"
 #include "slideshoweditor.hpp"
 #include "schedule.hpp"
+#include "shortcuts.hpp"
 
 class QActionGroup;
 
@@ -116,11 +117,32 @@ private:
     bool isSingleScreen;
     bool hasDisplayScreen2;
 
-    // shortcuts
-    QShortcut *shpgUP;
-    QShortcut *shpgDwn;
-    QShortcut *shSart1;
-    QShortcut *shSart2;
+    // Keyboard shortcuts that can be changed in Settings
+    QList<ShortcutCommand> shortcutCommands;
+    QMap<QString, QAction*> shortcutActions;
+    class KeyHint
+    {
+        // A label that shows the key of a command in brackets, e.g. "Go Live (F5)"
+    public:
+        QObject *object;
+        QByteArray property;
+        QString commandId;
+        QString text; // Without the key
+    };
+    QList<KeyHint> keyHints;
+    void setupShortcuts();
+    void addShortcut(const QString &id, const char *group, const char *name, QAction *action,
+                     const QList<QKeySequence> &defaultKeys);
+    QAction *addShortcutAction(const QString &id, const char *group, const char *name,
+                               const QList<QKeySequence> &defaultKeys);
+    QList<QKeySequence> shortcutKeys(const QString &id) const;
+    void captureKeyHints();
+    void applyShortcutsToUi();
+    QList<QPushButton*> goLiveButtons();
+    void goLiveFromCurrentTab();
+    void goLiveScheduleItem(int step);
+    void showSlide(int row);
+    void clickMediaControl(const char *buttonName);
 
     // Pictures
     QList<SlideShowItem> pictureShowList;
@@ -185,6 +207,7 @@ private slots:
     void setAnnounceText(Announcement announce, int row);
     void setChapterList(QStringList chapter_list, QString caption, QItemSelection selectedItems);
     void setPrimaryBible(QString bibleId);
+    void applyShortcuts(ShortcutKeys keys);
     void reloadBibleShowList();
     void setPictureList(QList<SlideShowItem> &image_list, int row, QString name);
     void setVideo(VideoInfo &video);

@@ -18,6 +18,7 @@
 ***************************************************************************/
 
 #include <QDesktopWidget>
+#include <QRegularExpression>
 #include "softprojector.hpp"
 #include "ui_softprojector.h"
 #include "aboutdialog.hpp"
@@ -151,15 +152,8 @@ SoftProjector::SoftProjector(QWidget *parent)
     ui->actionHide->setEnabled(false);
     ui->actionClear->setEnabled(false);
 
-    // Create and connect shortcuts
-    shpgUP = new QShortcut(Qt::Key_PageUp,this);
-    shpgDwn = new QShortcut(Qt::Key_PageDown,this);
-    shSart1 = new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_B),this);
-    shSart2 = new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_F5),this);
-    connect(shpgUP,SIGNAL(activated()),this,SLOT(prevSlide()));
-    connect(shpgDwn,SIGNAL(activated()),this,SLOT(nextSlide()));
-    connect(shSart1,SIGNAL(activated()),this,SLOT(on_actionShow_triggered()));
-    connect(shSart2,SIGNAL(activated()),this,SLOT(on_actionShow_triggered()));
+    setupShortcuts();
+    connect(settingsDialog, &SettingsDialog::updateShortcuts, this, &SoftProjector::applyShortcuts);
 
     // Hide Multi verse selection, only visible to be when showing bible
     ui->widgetMultiVerse->setVisible(false);
@@ -203,10 +197,6 @@ SoftProjector::~SoftProjector()
     delete desktop;
     delete languageGroup;
     delete settingsDialog;
-    delete shpgUP;
-    delete shpgDwn;
-    delete shSart1;
-    delete shSart2;
     delete helpDialog;
     delete ui;
 }
@@ -436,25 +426,9 @@ void SoftProjector::closeEvent(QCloseEvent *event)
 void SoftProjector::keyPressEvent(QKeyEvent *event)
 {
     // Will get called when a key is pressed
+    // Keys that can be changed are set up in setupShortcuts()
     int key = event->key();
-    if(key == Qt::Key_F6)
-    {
-        ui->projectTab->setCurrentWidget(bibleWidget);
-        bibleWidget->setBibleBookActive();
-    }
-    else if(key == Qt::Key_F7)
-    {
-        ui->projectTab->setCurrentWidget(songWidget);
-        songWidget->setSearchActive();
-    }
-    else if(key == Qt::Key_F8)
-        ui->projectTab->setCurrentWidget(announceWidget);
-    if(key == Qt::Key_F9)
-    {
-        ui->projectTab->setCurrentWidget(bibleWidget);
-        bibleWidget->setBibleSearchActive();
-    }
-    else if(key == Qt::Key_Left)
+    if(key == Qt::Key_Left)
         prevSlide();
     else if(key == Qt::Key_Back)
         prevSlide();
@@ -1021,7 +995,294 @@ void SoftProjector::updateCloseDisplayButtons(bool isOn)
 void SoftProjector::on_actionSettings_triggered()
 {
     settingsDialog->loadSettings(mySettings.general,theme,mySettings.slideSets, mySettings.bibleSets,mySettings.bibleSets2);
+    QList<ShortcutCommand> commands = shortcutCommands;
+    for(int i(0); i < commands.count(); ++i)
+    {
+        commands[i].group = QCoreApplication::translate("SoftProjector", commands.at(i).group.toUtf8().constData());
+        commands[i].name = QCoreApplication::translate("SoftProjector", commands.at(i).name.toUtf8().constData());
+    }
+    settingsDialog->setShortcuts(commands);
     settingsDialog->exec();
+}
+
+void SoftProjector::setupShortcuts()
+{
+    // Every command that can get keys in Settings. The default keys are the keys SoftProjector always had.
+    typedef QList<QKeySequence> Keys;
+    QAction *action;
+
+    const char *screen = QT_TRANSLATE_NOOP("SoftProjector", "Screen");
+    addShortcut("show", screen, QT_TRANSLATE_NOOP("SoftProjector", "Show on the screens"), ui->actionShow,
+                Keys() << QKeySequence(Qt::Key_F4) << QKeySequence(Qt::SHIFT + Qt::Key_F5)
+                << QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_B));
+    addShortcut("hide", screen, QT_TRANSLATE_NOOP("SoftProjector", "Hide (show the passive screen)"), ui->actionHide,
+                Keys() << QKeySequence(Qt::Key_Escape));
+    addShortcut("clear", screen, QT_TRANSLATE_NOOP("SoftProjector", "Clear the text"), ui->actionClear,
+                Keys() << QKeySequence(Qt::SHIFT + Qt::Key_Escape));
+    addShortcut("displayOnOff", screen, QT_TRANSLATE_NOOP("SoftProjector", "Turn the screens on or off"),
+                ui->actionCloseDisplay, Keys());
+    action = addShortcutAction("goLive", screen, QT_TRANSLATE_NOOP("SoftProjector", "Go live from the current tab"),
+                               Keys() << QKeySequence(Qt::Key_F5));
+    connect(action, &QAction::triggered, this, [this]{ goLiveFromCurrentTab(); });
+    action = addShortcutAction("next", screen, QT_TRANSLATE_NOOP("SoftProjector", "Next verse, stanza or slide"),
+                               Keys() << QKeySequence(Qt::Key_PageDown));
+    connect(action, &QAction::triggered, this, [this]{ nextSlide(); });
+    action = addShortcutAction("prev", screen, QT_TRANSLATE_NOOP("SoftProjector", "Previous verse, stanza or slide"),
+                               Keys() << QKeySequence(Qt::Key_PageUp));
+    connect(action, &QAction::triggered, this, [this]{ prevSlide(); });
+    action = addShortcutAction("first", screen, QT_TRANSLATE_NOOP("SoftProjector", "First verse, stanza or slide"), Keys());
+    connect(action, &QAction::triggered, this, [this]{ showSlide(0); });
+    action = addShortcutAction("last", screen, QT_TRANSLATE_NOOP("SoftProjector", "Last verse, stanza or slide"), Keys());
+    connect(action, &QAction::triggered, this, [this]{ showSlide(ui->listShow->count() - 1); });
+
+    const char *tabs = QT_TRANSLATE_NOOP("SoftProjector", "Tabs");
+    action = addShortcutAction("tabBible", tabs, QT_TRANSLATE_NOOP("SoftProjector", "Bible tab, find a book"),
+                               Keys() << QKeySequence(Qt::Key_F6));
+    connect(action, &QAction::triggered, this, [this]{
+        ui->projectTab->setCurrentWidget(bibleWidget);
+        bibleWidget->setBibleBookActive();
+    });
+    action = addShortcutAction("bibleSearch", tabs, QT_TRANSLATE_NOOP("SoftProjector", "Search the Bible"),
+                               Keys() << QKeySequence(Qt::Key_F9));
+    connect(action, &QAction::triggered, this, [this]{
+        ui->projectTab->setCurrentWidget(bibleWidget);
+        bibleWidget->setBibleSearchActive();
+    });
+    action = addShortcutAction("nextTranslation", tabs, QT_TRANSLATE_NOOP("SoftProjector", "Next Bible translation"),
+                               Keys() << QKeySequence(Qt::Key_F11));
+    connect(action, &QAction::triggered, this, [this]{ bibleWidget->selectNextBibleVersion(); });
+    action = addShortcutAction("tabSongs", tabs, QT_TRANSLATE_NOOP("SoftProjector", "Songs tab, find a song"),
+                               Keys() << QKeySequence(Qt::Key_F7));
+    connect(action, &QAction::triggered, this, [this]{
+        ui->projectTab->setCurrentWidget(songWidget);
+        songWidget->setSearchActive();
+    });
+    action = addShortcutAction("tabPictures", tabs, QT_TRANSLATE_NOOP("SoftProjector", "Pictures tab"), Keys());
+    connect(action, &QAction::triggered, this, [this]{ ui->projectTab->setCurrentWidget(pictureWidget); });
+    action = addShortcutAction("tabMedia", tabs, QT_TRANSLATE_NOOP("SoftProjector", "Media tab"), Keys());
+    connect(action, &QAction::triggered, this, [this]{ ui->projectTab->setCurrentWidget(mediaPlayer); });
+    action = addShortcutAction("tabAnnouncements", tabs, QT_TRANSLATE_NOOP("SoftProjector", "Announcements tab"),
+                               Keys() << QKeySequence(Qt::Key_F8));
+    connect(action, &QAction::triggered, this, [this]{ ui->projectTab->setCurrentWidget(announceWidget); });
+
+    const char *scheduleGroup = QT_TRANSLATE_NOOP("SoftProjector", "Service schedule");
+    addShortcut("scheduleAdd", scheduleGroup, QT_TRANSLATE_NOOP("SoftProjector", "Add to the schedule"),
+                ui->actionScheduleAdd, Keys() << QKeySequence(Qt::Key_F2));
+    addShortcut("scheduleRemove", scheduleGroup, QT_TRANSLATE_NOOP("SoftProjector", "Remove from the schedule"),
+                ui->actionScheduleRemove, Keys() << QKeySequence(Qt::Key_Delete));
+    action = addShortcutAction("scheduleNextLive", scheduleGroup,
+                               QT_TRANSLATE_NOOP("SoftProjector", "Next schedule item on the screens"),
+                               Keys() << QKeySequence(Qt::CTRL + Qt::Key_PageDown));
+    connect(action, &QAction::triggered, this, [this]{ goLiveScheduleItem(1); });
+    action = addShortcutAction("schedulePrevLive", scheduleGroup,
+                               QT_TRANSLATE_NOOP("SoftProjector", "Previous schedule item on the screens"),
+                               Keys() << QKeySequence(Qt::CTRL + Qt::Key_PageUp));
+    connect(action, &QAction::triggered, this, [this]{ goLiveScheduleItem(-1); });
+    addShortcut("scheduleNew", scheduleGroup, QT_TRANSLATE_NOOP("SoftProjector", "New schedule"),
+                ui->actionNewSchedule, Keys() << QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_N));
+    addShortcut("scheduleOpen", scheduleGroup, QT_TRANSLATE_NOOP("SoftProjector", "Open schedule"),
+                ui->actionOpenSchedule, Keys() << QKeySequence(Qt::CTRL + Qt::Key_O));
+    addShortcut("scheduleSave", scheduleGroup, QT_TRANSLATE_NOOP("SoftProjector", "Save schedule"),
+                ui->actionSaveSchedule, Keys() << QKeySequence(Qt::CTRL + Qt::Key_S));
+    addShortcut("schedulePrint", scheduleGroup, QT_TRANSLATE_NOOP("SoftProjector", "Print schedule"),
+                ui->actionPrintSchedule, Keys() << QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_P));
+
+    const char *video = QT_TRANSLATE_NOOP("SoftProjector", "Video");
+    action = addShortcutAction("videoPlayPause", video, QT_TRANSLATE_NOOP("SoftProjector", "Play or pause the video"), Keys());
+    connect(action, &QAction::triggered, this, [this]{ clickMediaControl("pushButtonPlayPause"); });
+    action = addShortcutAction("videoStop", video, QT_TRANSLATE_NOOP("SoftProjector", "Stop the video"), Keys());
+    connect(action, &QAction::triggered, this, [this]{ clickMediaControl("pushButtonStop"); });
+
+    const char *other = QT_TRANSLATE_NOOP("SoftProjector", "Other");
+    addShortcut("newItem", other, QT_TRANSLATE_NOOP("SoftProjector", "New item (song, slide show, announcement)"),
+                ui->actionNew, Keys() << QKeySequence(Qt::CTRL + Qt::Key_N));
+    addShortcut("editItem", other, QT_TRANSLATE_NOOP("SoftProjector", "Edit the selected item"),
+                ui->actionEdit, Keys() << QKeySequence(Qt::CTRL + Qt::Key_E));
+    addShortcut("copyItem", other, QT_TRANSLATE_NOOP("SoftProjector", "Copy the selected item"),
+                ui->actionCopy, Keys() << QKeySequence(Qt::CTRL + Qt::Key_C));
+    addShortcut("deleteItem", other, QT_TRANSLATE_NOOP("SoftProjector", "Delete the selected item"),
+                ui->actionDelete, Keys() << QKeySequence(Qt::CTRL + Qt::Key_Delete));
+    addShortcut("print", other, QT_TRANSLATE_NOOP("SoftProjector", "Print"),
+                ui->actionPrint, Keys() << QKeySequence(Qt::CTRL + Qt::Key_P));
+    addShortcut("settings", other, QT_TRANSLATE_NOOP("SoftProjector", "Settings"),
+                ui->actionSettings, Keys() << QKeySequence(Qt::CTRL + Qt::Key_T));
+    addShortcut("manageDatabase", other, QT_TRANSLATE_NOOP("SoftProjector", "Manage database"),
+                ui->actionManage_Database, Keys() << QKeySequence(Qt::CTRL + Qt::Key_M));
+    addShortcut("help", other, QT_TRANSLATE_NOOP("SoftProjector", "Help"),
+                ui->action_Help, Keys() << QKeySequence(Qt::Key_F1));
+    addShortcut("exit", other, QT_TRANSLATE_NOOP("SoftProjector", "Exit"),
+                ui->actionClose, Keys() << QKeySequence(Qt::CTRL + Qt::Key_Q));
+
+    // Labels that show a key in brackets
+    QList<QPushButton*> buttons = goLiveButtons();
+    foreach(QPushButton *button, buttons)
+        keyHints.append(KeyHint{button, "text", "goLive", QString()});
+    keyHints.append(KeyHint{bibleWidget->findChild<QLabel*>("lblBook_2"), "text", "bibleSearch", QString()});
+    keyHints.append(KeyHint{ui->actionShow, "toolTip", "show", QString()});
+    keyHints.append(KeyHint{ui->actionHide, "toolTip", "hide", QString()});
+    keyHints.append(KeyHint{ui->actionClear, "toolTip", "clear", QString()});
+
+    captureKeyHints();
+    applyShortcutsToUi();
+}
+
+void SoftProjector::addShortcut(const QString &id, const char *group, const char *name, QAction *action,
+                                const QList<QKeySequence> &defaultKeys)
+{
+    ShortcutCommand command;
+    command.id = id;
+    command.group = group; // Translated when shown in Settings
+    command.name = name;
+    command.defaultKeys = defaultKeys;
+    command.keys = defaultKeys;
+    if(mySettings.shortcuts.contains(id))
+    {
+        command.keys.clear();
+        foreach(const QKeySequence &key, QKeySequence::listFromString(mySettings.shortcuts.value(id),
+                                                                     QKeySequence::PortableText))
+        {
+            if(!key.isEmpty() && command.keys.count() < MAX_SHORTCUT_KEYS)
+                command.keys.append(key);
+        }
+    }
+    shortcutCommands.append(command);
+    shortcutActions.insert(id, action);
+}
+
+QAction *SoftProjector::addShortcutAction(const QString &id, const char *group, const char *name,
+                                          const QList<QKeySequence> &defaultKeys)
+{
+    // A command that has no menu item: the action is only there for its keys
+    QAction *action = new QAction(this);
+    addAction(action);
+    addShortcut(id, group, name, action, defaultKeys);
+    return action;
+}
+
+QList<QKeySequence> SoftProjector::shortcutKeys(const QString &id) const
+{
+    foreach(const ShortcutCommand &command, shortcutCommands)
+    {
+        if(command.id == id)
+            return command.keys;
+    }
+    return QList<QKeySequence>();
+}
+
+static QString removeKeyHint(QString text)
+{
+    // "Go Live (F5)" -> "Go Live", "Search (F9):" -> "Search:"
+    static const QRegularExpression hint("\\s*\\([^()]*\\)(?=:?\\s*$)");
+    return text.remove(hint);
+}
+
+static QString addKeyHint(const QString &text, const QList<QKeySequence> &keys)
+{
+    if(keys.isEmpty())
+        return text;
+    QString hint = QString(" (%1)").arg(keys.first().toString(QKeySequence::NativeText));
+    if(text.endsWith(':'))
+        return text.left(text.length() - 1) + hint + ":";
+    return text + hint;
+}
+
+void SoftProjector::captureKeyHints()
+{
+    // Remember the label texts without keys; called when the texts come fresh from the .ui files
+    for(int i(0); i < keyHints.count(); ++i)
+    {
+        if(keyHints.at(i).object)
+            keyHints[i].text = removeKeyHint(keyHints.at(i).object->property(keyHints.at(i).property).toString());
+    }
+}
+
+void SoftProjector::applyShortcutsToUi()
+{
+    foreach(const ShortcutCommand &command, shortcutCommands)
+        shortcutActions.value(command.id)->setShortcuts(command.keys);
+
+    // The "Go Live" buttons have their own F5 in the .ui files. Keys of a button and of the
+    // goLive command would clash and neither would work, so the buttons get no keys.
+    foreach(QPushButton *button, goLiveButtons())
+    {
+        if(button)
+            button->setShortcut(QKeySequence());
+    }
+
+    foreach(const KeyHint &hint, keyHints)
+    {
+        if(hint.object)
+            hint.object->setProperty(hint.property, addKeyHint(hint.text, shortcutKeys(hint.commandId)));
+    }
+    ui->projectTab->setTabText(0, addKeyHint(removeKeyHint(tr("Bible (F6)")), shortcutKeys("tabBible")));
+    ui->projectTab->setTabText(1, addKeyHint(removeKeyHint(tr("Songs (F7)")), shortcutKeys("tabSongs")));
+    ui->projectTab->setTabText(2, addKeyHint(tr("Pictures"), shortcutKeys("tabPictures")));
+    ui->projectTab->setTabText(3, addKeyHint(tr("Media"), shortcutKeys("tabMedia")));
+    ui->projectTab->setTabText(4, addKeyHint(removeKeyHint(tr("Announcements (F8)")), shortcutKeys("tabAnnouncements")));
+}
+
+void SoftProjector::applyShortcuts(ShortcutKeys keys)
+{
+    // Keys changed in Settings. Only keys that differ from the defaults are saved.
+    for(int i(0); i < shortcutCommands.count(); ++i)
+    {
+        ShortcutCommand &command = shortcutCommands[i];
+        if(!keys.contains(command.id))
+            continue;
+        command.keys = keys.value(command.id);
+        if(command.keys == command.defaultKeys)
+            mySettings.shortcuts.remove(command.id);
+        else
+            mySettings.shortcuts.insert(command.id, QKeySequence::listToString(command.keys, QKeySequence::PortableText));
+    }
+    mySettings.saveSettings();
+    applyShortcutsToUi();
+}
+
+QList<QPushButton*> SoftProjector::goLiveButtons()
+{
+    // The "Go Live" button of every tab, in tab order
+    return QList<QPushButton*>()
+            << bibleWidget->findChild<QPushButton*>("btnLive")
+            << songWidget->findChild<QPushButton*>("btnLive")
+            << pictureWidget->findChild<QPushButton*>("pushButtonGoLive")
+            << mediaPlayer->findChild<QPushButton*>("pushButtonGoLive")
+            << announceWidget->findChild<QPushButton*>("pushButtonLive");
+}
+
+void SoftProjector::goLiveFromCurrentTab()
+{
+    QPushButton *button = goLiveButtons().value(ui->projectTab->currentIndex());
+    if(button)
+        button->click(); // Does nothing if the button is disabled
+}
+
+void SoftProjector::goLiveScheduleItem(int step)
+{
+    // Shows the next (step 1) or previous (step -1) schedule item; the first one if none is selected
+    int row = ui->listWidgetSchedule->currentRow();
+    row = (row < 0) ? 0 : row + step;
+    if(row < 0 || row >= ui->listWidgetSchedule->count())
+        return;
+    ui->listWidgetSchedule->setCurrentRow(row);
+    on_listWidgetSchedule_doubleClicked(ui->listWidgetSchedule->model()->index(row, 0));
+}
+
+void SoftProjector::showSlide(int row)
+{
+    // Selects a row of the show list, like the next and previous keys do
+    if(row < 0 || row >= ui->listShow->count())
+        return;
+    ui->rbMultiVerse->setChecked(false);
+    ui->listShow->setCurrentRow(row);
+}
+
+void SoftProjector::clickMediaControl(const char *buttonName)
+{
+    // Video controls are shown only while a video is in the show list
+    QPushButton *button = mediaControls->findChild<QPushButton*>(buttonName);
+    if(button && mediaControls->isVisible())
+        button->click();
 }
 
 void SoftProjector::on_listShow_doubleClicked(QModelIndex index)
@@ -1618,11 +1879,9 @@ void SoftProjector::retranslateUis()
     }
 
     ui->retranslateUi(this);
-    ui->projectTab->setTabText(0, tr("Bible (F6)"));
-    ui->projectTab->setTabText(1, tr("Songs (F7)"));
-    ui->projectTab->setTabText(2, tr("Pictures"));
-//    ui->projectTab->setTabText(3, tr("Media"));
-    ui->projectTab->setTabText(3, tr("Announcements (F8)"));
+    // Retranslating restores the keys and key hints from the .ui files; put the chosen ones back
+    captureKeyHints();
+    applyShortcutsToUi();
     updateEditActions();
     songWidget->retranslateUis();
     editWidget->retranslateUis();

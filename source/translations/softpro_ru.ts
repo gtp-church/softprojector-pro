@@ -2103,6 +2103,22 @@ Notes:
         <source>General</source>
         <translation>Общие</translation>
     </message>
+    <message>
+        <source>Shortcuts</source>
+        <translation>Горячие клавиши</translation>
+    </message>
+    <message>
+        <source>The same keys are assigned to several commands:
+
+%1
+
+Change them and try again.</source>
+        <translation>Одни и те же клавиши назначены нескольким командам:
+
+%1
+
+Измените их и попробуйте снова.</translation>
+    </message>
 </context>
 <context>
     <name>SlideShowEditor</name>
@@ -2477,6 +2493,166 @@ Please try again with different file name.</source>
         <source>Notes:</source>
         <comment>Notes to songs</comment>
         <translation>Заметки:</translation>
+    </message>
+    <message>
+        <source>Screen</source>
+        <translation>Экран</translation>
+    </message>
+    <message>
+        <source>Show on the screens</source>
+        <translation>Показать на экранах</translation>
+    </message>
+    <message>
+        <source>Hide (show the passive screen)</source>
+        <translation>Скрыть (показать фон)</translation>
+    </message>
+    <message>
+        <source>Clear the text</source>
+        <translation>Убрать текст с экранов</translation>
+    </message>
+    <message>
+        <source>Turn the screens on or off</source>
+        <translation>Включить или выключить экраны</translation>
+    </message>
+    <message>
+        <source>Go live from the current tab</source>
+        <translation>На экран из текущей вкладки</translation>
+    </message>
+    <message>
+        <source>Next verse, stanza or slide</source>
+        <translation>Следующий стих, куплет или слайд</translation>
+    </message>
+    <message>
+        <source>Previous verse, stanza or slide</source>
+        <translation>Предыдущий стих, куплет или слайд</translation>
+    </message>
+    <message>
+        <source>First verse, stanza or slide</source>
+        <translation>Первый стих, куплет или слайд</translation>
+    </message>
+    <message>
+        <source>Last verse, stanza or slide</source>
+        <translation>Последний стих, куплет или слайд</translation>
+    </message>
+    <message>
+        <source>Tabs</source>
+        <translation>Вкладки</translation>
+    </message>
+    <message>
+        <source>Bible tab, find a book</source>
+        <translation>Вкладка «Библия», поиск книги</translation>
+    </message>
+    <message>
+        <source>Search the Bible</source>
+        <translation>Поиск по Библии</translation>
+    </message>
+    <message>
+        <source>Next Bible translation</source>
+        <translation>Следующий перевод Библии</translation>
+    </message>
+    <message>
+        <source>Songs tab, find a song</source>
+        <translation>Вкладка «Песни», поиск песни</translation>
+    </message>
+    <message>
+        <source>Pictures tab</source>
+        <translation>Вкладка «Изображения»</translation>
+    </message>
+    <message>
+        <source>Media tab</source>
+        <translation>Вкладка «Медиа»</translation>
+    </message>
+    <message>
+        <source>Announcements tab</source>
+        <translation>Вкладка «Объявления»</translation>
+    </message>
+    <message>
+        <source>Service schedule</source>
+        <translation>Программа служения</translation>
+    </message>
+    <message>
+        <source>Add to the schedule</source>
+        <translation>Добавить в программу</translation>
+    </message>
+    <message>
+        <source>Remove from the schedule</source>
+        <translation>Убрать из программы</translation>
+    </message>
+    <message>
+        <source>Next schedule item on the screens</source>
+        <translation>Следующий пункт программы на экран</translation>
+    </message>
+    <message>
+        <source>Previous schedule item on the screens</source>
+        <translation>Предыдущий пункт программы на экран</translation>
+    </message>
+    <message>
+        <source>New schedule</source>
+        <translation>Новая программа</translation>
+    </message>
+    <message>
+        <source>Open schedule</source>
+        <translation>Открыть программу</translation>
+    </message>
+    <message>
+        <source>Save schedule</source>
+        <translation>Сохранить программу</translation>
+    </message>
+    <message>
+        <source>Print schedule</source>
+        <translation>Печать программы</translation>
+    </message>
+    <message>
+        <source>Video</source>
+        <translation>Видео</translation>
+    </message>
+    <message>
+        <source>Play or pause the video</source>
+        <translation>Видео: пуск или пауза</translation>
+    </message>
+    <message>
+        <source>Stop the video</source>
+        <translation>Видео: стоп</translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation>Прочее</translation>
+    </message>
+    <message>
+        <source>New item (song, slide show, announcement)</source>
+        <translation>Создать (песню, слайд-шоу, объявление)</translation>
+    </message>
+    <message>
+        <source>Edit the selected item</source>
+        <translation>Редактировать выбранное</translation>
+    </message>
+    <message>
+        <source>Copy the selected item</source>
+        <translation>Копировать выбранное</translation>
+    </message>
+    <message>
+        <source>Delete the selected item</source>
+        <translation>Удалить выбранное</translation>
+    </message>
+    <message>
+        <source>Print</source>
+        <translation>Печать</translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation>Настройки</translation>
+    </message>
+    <message>
+        <source>Manage database</source>
+        <translation>Управление базой данных</translation>
+    </message>
+    <message>
+        <source>Help</source>
+        <translation>Справка</translation>
+    </message>
+    <message>
+        <source>Exit</source>
+        <translation>Выход</translation>
     </message>
 </context>
 <context>
@@ -3262,6 +3438,29 @@ Please try again with different file name.</source>
     <message>
         <source>Comments</source>
         <translation>Комментарий</translation>
+    </message>
+</context>
+<context>
+    <name>ShortcutSettingWidget</name>
+    <message>
+        <source>Command</source>
+        <translation>Команда</translation>
+    </message>
+    <message>
+        <source>Keys %1</source>
+        <translation>Клавиши %1</translation>
+    </message>
+    <message>
+        <source>Click a field and press the keys. Keys work while the SoftProjector window is active.</source>
+        <translation>Щёлкните по полю и нажмите нужные клавиши. Клавиши работают, когда активно окно SoftProjector.</translation>
+    </message>
+    <message>
+        <source>Restore Defaults</source>
+        <translation>По умолчанию</translation>
+    </message>
+    <message>
+        <source>Clear</source>
+        <translation>Очистить</translation>
     </message>
 </context>
 </TS>

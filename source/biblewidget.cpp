@@ -94,6 +94,15 @@ void BibleWidget::reloadBibleVersions()
     ui->comboBoxBibleVersion->setCurrentIndex(ui->comboBoxBibleVersion->findData(mySettings.primaryBible));
 }
 
+void BibleWidget::selectNextBibleVersion()
+{
+    // Switches to the next translation in the list, after the last one back to the first
+    int count = ui->comboBoxBibleVersion->count();
+    if(count < 2)
+        return;
+    on_comboBoxBibleVersion_activated((ui->comboBoxBibleVersion->currentIndex() + 1) % count);
+}
+
 void BibleWidget::on_comboBoxBibleVersion_activated(int index)
 {
     // Give the keyboard back to the verse list, so arrow keys move verses, not the translation

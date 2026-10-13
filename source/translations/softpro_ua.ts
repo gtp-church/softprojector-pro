@@ -3179,6 +3179,22 @@ Notes:
         <source>Apply</source>
         <translation>Застосувати</translation>
     </message>
+    <message>
+        <source>Shortcuts</source>
+        <translation>Гарячі клавіші</translation>
+    </message>
+    <message>
+        <source>The same keys are assigned to several commands:
+
+%1
+
+Change them and try again.</source>
+        <translation>Одні й ті самі клавіші призначено кільком командам:
+
+%1
+
+Змініть їх і спробуйте знову.</translation>
+    </message>
 </context>
 <context>
     <name>SlideShowEditor</name>
@@ -3770,6 +3786,166 @@ You may try upgrading your version of softProjector.</source>
         <source>Notes:</source>
         <comment>Notes to songs</comment>
         <translation>Замітки:</translation>
+    </message>
+    <message>
+        <source>Screen</source>
+        <translation>Екран</translation>
+    </message>
+    <message>
+        <source>Show on the screens</source>
+        <translation>Показати на екранах</translation>
+    </message>
+    <message>
+        <source>Hide (show the passive screen)</source>
+        <translation>Сховати (показати фон)</translation>
+    </message>
+    <message>
+        <source>Clear the text</source>
+        <translation>Прибрати текст з екранів</translation>
+    </message>
+    <message>
+        <source>Turn the screens on or off</source>
+        <translation>Увімкнути або вимкнути екрани</translation>
+    </message>
+    <message>
+        <source>Go live from the current tab</source>
+        <translation>На екран з поточної вкладки</translation>
+    </message>
+    <message>
+        <source>Next verse, stanza or slide</source>
+        <translation>Наступний вірш, куплет або слайд</translation>
+    </message>
+    <message>
+        <source>Previous verse, stanza or slide</source>
+        <translation>Попередній вірш, куплет або слайд</translation>
+    </message>
+    <message>
+        <source>First verse, stanza or slide</source>
+        <translation>Перший вірш, куплет або слайд</translation>
+    </message>
+    <message>
+        <source>Last verse, stanza or slide</source>
+        <translation>Останній вірш, куплет або слайд</translation>
+    </message>
+    <message>
+        <source>Tabs</source>
+        <translation>Вкладки</translation>
+    </message>
+    <message>
+        <source>Bible tab, find a book</source>
+        <translation>Вкладка «Біблія», пошук книги</translation>
+    </message>
+    <message>
+        <source>Search the Bible</source>
+        <translation>Пошук у Біблії</translation>
+    </message>
+    <message>
+        <source>Next Bible translation</source>
+        <translation>Наступний переклад Біблії</translation>
+    </message>
+    <message>
+        <source>Songs tab, find a song</source>
+        <translation>Вкладка «Пісні», пошук пісні</translation>
+    </message>
+    <message>
+        <source>Pictures tab</source>
+        <translation>Вкладка «Зображення»</translation>
+    </message>
+    <message>
+        <source>Media tab</source>
+        <translation>Вкладка «Медіа»</translation>
+    </message>
+    <message>
+        <source>Announcements tab</source>
+        <translation>Вкладка «Оголошення»</translation>
+    </message>
+    <message>
+        <source>Service schedule</source>
+        <translation>Програма служіння</translation>
+    </message>
+    <message>
+        <source>Add to the schedule</source>
+        <translation>Додати до програми</translation>
+    </message>
+    <message>
+        <source>Remove from the schedule</source>
+        <translation>Прибрати з програми</translation>
+    </message>
+    <message>
+        <source>Next schedule item on the screens</source>
+        <translation>Наступний пункт програми на екран</translation>
+    </message>
+    <message>
+        <source>Previous schedule item on the screens</source>
+        <translation>Попередній пункт програми на екран</translation>
+    </message>
+    <message>
+        <source>New schedule</source>
+        <translation>Нова програма</translation>
+    </message>
+    <message>
+        <source>Open schedule</source>
+        <translation>Відкрити програму</translation>
+    </message>
+    <message>
+        <source>Save schedule</source>
+        <translation>Зберегти програму</translation>
+    </message>
+    <message>
+        <source>Print schedule</source>
+        <translation>Друк програми</translation>
+    </message>
+    <message>
+        <source>Video</source>
+        <translation>Відео</translation>
+    </message>
+    <message>
+        <source>Play or pause the video</source>
+        <translation>Відео: пуск або пауза</translation>
+    </message>
+    <message>
+        <source>Stop the video</source>
+        <translation>Відео: стоп</translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation>Інше</translation>
+    </message>
+    <message>
+        <source>New item (song, slide show, announcement)</source>
+        <translation>Створити (пісню, слайд-шоу, оголошення)</translation>
+    </message>
+    <message>
+        <source>Edit the selected item</source>
+        <translation>Редагувати вибране</translation>
+    </message>
+    <message>
+        <source>Copy the selected item</source>
+        <translation>Копіювати вибране</translation>
+    </message>
+    <message>
+        <source>Delete the selected item</source>
+        <translation>Видалити вибране</translation>
+    </message>
+    <message>
+        <source>Print</source>
+        <translation>Друк</translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation>Налаштування</translation>
+    </message>
+    <message>
+        <source>Manage database</source>
+        <translation>Керування базою даних</translation>
+    </message>
+    <message>
+        <source>Help</source>
+        <translation>Довідка</translation>
+    </message>
+    <message>
+        <source>Exit</source>
+        <translation>Вихід</translation>
     </message>
 </context>
 <context>
@@ -4987,6 +5163,29 @@ You may try upgrading your version of softProjector.</source>
         <location filename="../managedata.cpp" line="255"/>
         <source>Comments</source>
         <translation>Коментар</translation>
+    </message>
+</context>
+<context>
+    <name>ShortcutSettingWidget</name>
+    <message>
+        <source>Command</source>
+        <translation>Команда</translation>
+    </message>
+    <message>
+        <source>Keys %1</source>
+        <translation>Клавіші %1</translation>
+    </message>
+    <message>
+        <source>Click a field and press the keys. Keys work while the SoftProjector window is active.</source>
+        <translation>Клацніть по полю й натисніть потрібні клавіші. Клавіші працюють, коли активне вікно SoftProjector.</translation>
+    </message>
+    <message>
+        <source>Restore Defaults</source>
+        <translation>За замовчуванням</translation>
+    </message>
+    <message>
+        <source>Clear</source>
+        <translation>Очистити</translation>
     </message>
 </context>
 </TS>

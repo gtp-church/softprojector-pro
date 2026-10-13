@@ -46,6 +46,7 @@ RCC_DIR = $${RES_DIR}/rcc
 OUT_PWD = $${RES_DIR}/bin
 
 SOURCES += main.cpp \
+    shortcutsettingwidget.cpp \
     softprojector.cpp \
     songwidget.cpp \
     biblewidget.cpp \
@@ -90,6 +91,8 @@ SOURCES += main.cpp \
     spimageprovider.cpp \
     mediacontrol.cpp
 HEADERS += softprojector.hpp \
+    shortcuts.hpp \
+    shortcutsettingwidget.hpp \
     songwidget.hpp \
     biblewidget.hpp \
     editwidget.hpp \
