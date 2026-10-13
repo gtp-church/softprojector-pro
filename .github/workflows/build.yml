@@ -75,7 +75,8 @@ jobs:
           $dist = "$env:RUNNER_TEMP\dist"
           New-Item -ItemType Directory -Force "$dist\translations" | Out-Null
           Copy-Item source\win32_build\bin\SoftProjector.exe $dist
-          windeployqt --release --compiler-runtime --no-translations --qmldir source "$dist\SoftProjector.exe"
+          # No --release: for MinGW it makes windeployqt guess debug/release per plugin and miss qwindows.dll
+          windeployqt --compiler-runtime --no-translations --qmldir source "$dist\SoftProjector.exe"
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           Copy-Item source\translations\softpro_*.qm "$dist\translations"
           Copy-Item source\translations\flag_*.png "$dist\translations"
