@@ -748,7 +748,7 @@ Autorské právo:</translation>
     <message>
         <location filename="../biblesettingwidget.ui" line="456"/>
         <location filename="../biblesettingwidget.ui" line="1230"/>
-        <source>Show Bible Version Abbriviation</source>
+        <source>Show Bible Version Abbreviation</source>
         <translation>Ukázat zkratku verze Bible</translation>
     </message>
     <message>
@@ -862,8 +862,8 @@ Autorské právo:</translation>
     </message>
     <message>
         <location filename="../biblewidget.ui" line="50"/>
-        <source>Search:</source>
-        <translation>Hledat:</translation>
+        <source>Search (F9):</source>
+        <translation>Hledat (F9):</translation>
     </message>
     <message>
         <location filename="../biblewidget.ui" line="69"/>
@@ -2260,7 +2260,7 @@ Uložen jako:
     </message>
     <message>
         <location filename="../managedatadialog.cpp" line="796"/>
-        <source>This action will permanentrly delete this songbook</source>
+        <source>This action will permanently delete this songbook</source>
         <translation>Tímto krokem bude zpěvník neodvolatelně smazán</translation>
     </message>
     <message>
@@ -2533,7 +2533,7 @@ Zavádí se: %1</translation>
     </message>
     <message>
         <location filename="../managedatadialog.cpp" line="1809"/>
-        <source>This action will permanentrly delete this theme</source>
+        <source>This action will permanently delete this theme</source>
         <translation>Tímto krokem bude motiv neodvolatelně smazán</translation>
     </message>
     <message>
@@ -2586,7 +2586,7 @@ Byla uložena jako:
     </message>
     <message>
         <location filename="../managedatadialog.cpp" line="1132"/>
-        <source>This action will permanentrly delete this Bible</source>
+        <source>This action will permanently delete this Bible</source>
         <translation>Tímto krokem bude Bible neodvolatelně smazána</translation>
     </message>
     <message>
@@ -2871,7 +2871,7 @@ Doporučuje se změna velikosti obrázků na velikost zobrazovací obrazovky.</t
     </message>
     <message>
         <location filename="../picturesettingwidget.cpp" line="130"/>
-        <source>Inalid Numeric Value</source>
+        <source>Invalid Numeric Value</source>
         <translation>Neplatná číselná hodnota</translation>
     </message>
     <message>
@@ -3137,8 +3137,8 @@ Poznámky:
     <name>ProjectorDisplayScreen</name>
     <message>
         <location filename="../projectordisplayscreen.ui" line="14"/>
-        <source>Form</source>
-        <translation type="unfinished">Formulář</translation>
+        <source>Display Screen</source>
+        <translation>Zobrazovací obrazovka</translation>
     </message>
 </context>
 <context>
@@ -3930,6 +3930,11 @@ Můžete zkusit povýšit svou verzi softProjectoru.</translation>
         <source>This action will permanentrly delete this song</source>
         <translation>Tímto krokem bude tato píseň neodvolatelně smazána</translation>
     </message>
+    <message>
+        <source>Notes:</source>
+        <comment>Notes to songs</comment>
+        <translation>Bere na vědomí:</translation>
+    </message>
 </context>
 <context>
     <name>SoftProjectorClass</name>
@@ -4168,7 +4173,7 @@ Můžete zkusit povýšit svou verzi softProjectoru.</translation>
     </message>
     <message>
         <location filename="../softprojector.ui" line="634"/>
-        <source>Dsiplay to the screen (F4)</source>
+        <source>Display to the screen (F4)</source>
         <translation>Zobrazit na obrazovce (F4)</translation>
     </message>
     <message>

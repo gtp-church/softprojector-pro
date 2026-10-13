@@ -303,7 +303,7 @@ Copyright:</source>
         <translation>Размытая тень</translation>
     </message>
     <message>
-        <source>Show Bible Version Abbriviation</source>
+        <source>Show Bible Version Abbreviation</source>
         <translation>Показывать аббревиатуру Библии</translation>
     </message>
     <message>
@@ -553,8 +553,8 @@ resutls:
         <translation>На экран (F5)</translation>
     </message>
     <message>
-        <source>Search:</source>
-        <translation>Поиск:</translation>
+        <source>Search (F9):</source>
+        <translation>Поиск (F9):</translation>
     </message>
     <message>
         <source>Select search type</source>
@@ -1270,7 +1270,7 @@ From: %2</source>
         <translation>Скачать модуль темы</translation>
     </message>
     <message>
-        <source>This action will permanentrly delete this Bible</source>
+        <source>This action will permanently delete this Bible</source>
         <translation>Библия будет удалена навсегда</translation>
     </message>
     <message>
@@ -1292,7 +1292,7 @@ You may try to import it with version 1.07 and then export it, and import it aga
         <translation>Экспортировать выбранный сборник для других пользователей и для резервной копии.</translation>
     </message>
     <message>
-        <source>This action will permanentrly delete this theme</source>
+        <source>This action will permanently delete this theme</source>
         <translation>Это действие удалит тему навсегда</translation>
     </message>
     <message>
@@ -1526,7 +1526,7 @@ by current version of SoftProjector.
         <translation>Импортирование тем...</translation>
     </message>
     <message>
-        <source>This action will permanentrly delete this songbook</source>
+        <source>This action will permanently delete this songbook</source>
         <translation>Сборник будет удален навсегда</translation>
     </message>
     <message>
@@ -1755,7 +1755,7 @@ Your current SoftProjector version does not support this format.</source>
         <translation></translation>
     </message>
     <message>
-        <source>Inalid Numeric Value</source>
+        <source>Invalid Numeric Value</source>
         <translation>Недопустимое числовое значение</translation>
     </message>
     <message>
@@ -2017,8 +2017,8 @@ Notes:
 <context>
     <name>ProjectorDisplayScreen</name>
     <message>
-        <source>Form</source>
-        <translation type="unfinished">Форма</translation>
+        <source>Display Screen</source>
+        <translation>Экран</translation>
     </message>
 </context>
 <context>
@@ -2465,6 +2465,11 @@ Please try again with different file name.</source>
         <source>&amp;Add Media Files...</source>
         <translation type="vanished">&amp;Добавить файлы медиа...</translation>
     </message>
+    <message>
+        <source>Notes:</source>
+        <comment>Notes to songs</comment>
+        <translation>Заметки:</translation>
+    </message>
 </context>
 <context>
     <name>SoftProjectorClass</name>
@@ -2573,7 +2578,7 @@ Please try again with different file name.</source>
         <translation>&amp;Печать</translation>
     </message>
     <message>
-        <source>Dsiplay to the screen (F4)</source>
+        <source>Display to the screen (F4)</source>
         <translation>Показать на экране (F4)</translation>
     </message>
     <message>

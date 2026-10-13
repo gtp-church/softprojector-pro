@@ -698,7 +698,7 @@ Copyright:</source>
     <message>
         <location filename="../biblesettingwidget.ui" line="456"/>
         <location filename="../biblesettingwidget.ui" line="1230"/>
-        <source>Show Bible Version Abbriviation</source>
+        <source>Show Bible Version Abbreviation</source>
         <translation>Показувати абревіатуру Біблії</translation>
     </message>
     <message>
@@ -802,8 +802,8 @@ Copyright:</source>
     </message>
     <message>
         <location filename="../biblewidget.ui" line="50"/>
-        <source>Search:</source>
-        <translation>Пошук:</translation>
+        <source>Search (F9):</source>
+        <translation>Пошук (F9):</translation>
     </message>
     <message>
         <location filename="../biblewidget.ui" line="69"/>
@@ -2150,7 +2150,7 @@ Has been saved to:
     </message>
     <message>
         <location filename="../managedatadialog.cpp" line="796"/>
-        <source>This action will permanentrly delete this songbook</source>
+        <source>This action will permanently delete this songbook</source>
         <translation>Це діло видалить збірник з кінцями. Для відновлення прийдеться попотіти</translation>
     </message>
     <message>
@@ -2360,7 +2360,7 @@ by current version of SoftProjector.
     </message>
     <message>
         <location filename="../managedatadialog.cpp" line="1809"/>
-        <source>This action will permanentrly delete this theme</source>
+        <source>This action will permanently delete this theme</source>
         <translation>Дійсно продовжити? Ця дія ж бо приведе до видалення теми</translation>
     </message>
     <message>
@@ -2463,7 +2463,7 @@ Has been saved to:
     </message>
     <message>
         <location filename="../managedatadialog.cpp" line="1132"/>
-        <source>This action will permanentrly delete this Bible</source>
+        <source>This action will permanently delete this Bible</source>
         <translation>Це діло повністю видалить модуль. Для відновлення прийдеться попотіти</translation>
     </message>
     <message>
@@ -2737,7 +2737,7 @@ We recommend to resize images to display screen size.</source>
     </message>
     <message>
         <location filename="../picturesettingwidget.cpp" line="130"/>
-        <source>Inalid Numeric Value</source>
+        <source>Invalid Numeric Value</source>
         <translation>Некоректне числове значення</translation>
     </message>
     <message>
@@ -2992,8 +2992,8 @@ Notes:
     <name>ProjectorDisplayScreen</name>
     <message>
         <location filename="../projectordisplayscreen.ui" line="14"/>
-        <source>Form</source>
-        <translation type="unfinished">Форма</translation>
+        <source>Display Screen</source>
+        <translation>Екран</translation>
     </message>
 </context>
 <context>
@@ -3758,6 +3758,11 @@ You may try upgrading your version of softProjector.</source>
         <source>English</source>
         <translation type="obsolete">Українська</translation>
     </message>
+    <message>
+        <source>Notes:</source>
+        <comment>Notes to songs</comment>
+        <translation>Замітки:</translation>
+    </message>
 </context>
 <context>
     <name>SoftProjectorClass</name>
@@ -4023,7 +4028,7 @@ You may try upgrading your version of softProjector.</source>
     </message>
     <message>
         <location filename="../softprojector.ui" line="634"/>
-        <source>Dsiplay to the screen (F4)</source>
+        <source>Display to the screen (F4)</source>
         <translation>Показати на дисплеї (F4)</translation>
     </message>
     <message>

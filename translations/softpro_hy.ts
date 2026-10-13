@@ -235,7 +235,7 @@ Notes:
         <translation>&amp;Տպել</translation>
     </message>
     <message>
-        <source>Dsiplay to the screen (F4)</source>
+        <source>Display to the screen (F4)</source>
         <translation>Ցույց տալ էկրանին (F4)</translation>
     </message>
     <message>
@@ -544,8 +544,8 @@ resutls:
         <translation>Էկրանի վրա (F5)</translation>
     </message>
     <message>
-        <source>Search:</source>
-        <translation>Որոնում:</translation>
+        <source>Search (F9):</source>
+        <translation>Որոնում (F9):</translation>
     </message>
     <message>
         <source>Select search type</source>
@@ -1193,7 +1193,7 @@ Please enter announcement title.</source>
         <translation>Աղոտ ստվեր</translation>
     </message>
     <message>
-        <source>Show Bible Version Abbriviation</source>
+        <source>Show Bible Version Abbreviation</source>
         <translation>Ցույց տալ հապավումը Աստվածաշնչի</translation>
     </message>
     <message>
@@ -2152,7 +2152,7 @@ From: %2</source>
         <translation>Բեռնել թեմայի մոդուլ</translation>
     </message>
     <message>
-        <source>This action will permanentrly delete this Bible</source>
+        <source>This action will permanently delete this Bible</source>
         <translation>Աստվածաշունչը կհեռացվի ընդմիշտ</translation>
     </message>
     <message>
@@ -2168,7 +2168,7 @@ Please upgrade SoftProjector to latest version.</source>
         <translation>Արտահանել ընտրված երգարանը այլ օգտվողներին եւ պահպանմանը.</translation>
     </message>
     <message>
-        <source>This action will permanentrly delete this theme</source>
+        <source>This action will permanently delete this theme</source>
         <translation>Այս գործողությունը կհեռացնի թեման ընդմիշտ</translation>
     </message>
     <message>
@@ -2402,7 +2402,7 @@ by current version of SoftProjector.
         <translation>Թեմայի Ներմուծում...</translation>
     </message>
     <message>
-        <source>This action will permanentrly delete this songbook</source>
+        <source>This action will permanently delete this songbook</source>
         <translation>Երգարանը ընդմիշտ կհեռացվի</translation>
     </message>
     <message>
@@ -2908,6 +2908,11 @@ Please try again with different file name.</source>
         <source>&amp;Add Media Files...</source>
         <translation>&amp;Ավելացնել մեդիա ֆայլեր...</translation>
     </message>
+    <message>
+        <source>Notes:</source>
+        <comment>Notes to songs</comment>
+        <translation>Նշումներ:</translation>
+    </message>
 </context>
 <context>
     <name>AboutDialog</name>
@@ -3073,7 +3078,7 @@ Matvey Adzhigirey</source>
         <translation></translation>
     </message>
     <message>
-        <source>Inalid Numeric Value</source>
+        <source>Invalid Numeric Value</source>
         <translation>Սխալ թիվ</translation>
     </message>
     <message>

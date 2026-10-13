@@ -758,7 +758,7 @@ Urheberrecht:</translation>
     <message>
         <location filename="../biblesettingwidget.ui" line="456"/>
         <location filename="../biblesettingwidget.ui" line="1230"/>
-        <source>Show Bible Version Abbriviation</source>
+        <source>Show Bible Version Abbreviation</source>
         <translation>Abkürzung der Bibel-Version anzeigen</translation>
     </message>
     <message>
@@ -854,8 +854,8 @@ Urheberrecht:</translation>
     </message>
     <message>
         <location filename="../biblewidget.ui" line="50"/>
-        <source>Search:</source>
-        <translation>Suche:</translation>
+        <source>Search (F9):</source>
+        <translation>Suche (F9):</translation>
     </message>
     <message>
         <location filename="../biblewidget.ui" line="69"/>
@@ -2270,7 +2270,7 @@ Gespeichert als:
     </message>
     <message>
         <location filename="../managedatadialog.cpp" line="796"/>
-        <source>This action will permanentrly delete this songbook</source>
+        <source>This action will permanently delete this songbook</source>
         <translation>Durch diese Aktion wird das Gesangbuch unwiderruflich gelöscht</translation>
     </message>
     <message>
@@ -2397,7 +2397,7 @@ durch aktuelle Version des softProjectors unterstützt.</translation>
     </message>
     <message>
         <location filename="../managedatadialog.cpp" line="1809"/>
-        <source>This action will permanentrly delete this theme</source>
+        <source>This action will permanently delete this theme</source>
         <translation>Durch diese Aktion wird das Thema unwiderruflich gelöscht</translation>
     </message>
     <message>
@@ -2540,7 +2540,7 @@ Gespeichert als:
     </message>
     <message>
         <location filename="../managedatadialog.cpp" line="1132"/>
-        <source>This action will permanentrly delete this Bible</source>
+        <source>This action will permanently delete this Bible</source>
         <translation>Diese Aktion löscht die Bibel unwiderruflich</translation>
     </message>
     <message>
@@ -2821,7 +2821,7 @@ Wir empfehlen, die Größe von Bildern auf Bildschirmgröße anzupassen.</transl
     </message>
     <message>
         <location filename="../picturesettingwidget.cpp" line="130"/>
-        <source>Inalid Numeric Value</source>
+        <source>Invalid Numeric Value</source>
         <translation>Ungültiger nummerischer Wert</translation>
     </message>
     <message>
@@ -3076,8 +3076,8 @@ Notizen:
     <name>ProjectorDisplayScreen</name>
     <message>
         <location filename="../projectordisplayscreen.ui" line="14"/>
-        <source>Form</source>
-        <translation type="unfinished">Form</translation>
+        <source>Display Screen</source>
+        <translation>Bildschirm</translation>
     </message>
 </context>
 <context>
@@ -3865,6 +3865,11 @@ Bitte versuchen Sie, ein Upgrade Ihrer Version von softProjector zu machen.</tra
         <source>This action will permanentrly delete this song</source>
         <translation>Durch diese Aktion wird das Lied unwiderruflich gelöscht</translation>
     </message>
+    <message>
+        <source>Notes:</source>
+        <comment>Notes to songs</comment>
+        <translation>Notizen:</translation>
+    </message>
 </context>
 <context>
     <name>SoftProjectorClass</name>
@@ -4133,7 +4138,7 @@ Bitte versuchen Sie, ein Upgrade Ihrer Version von softProjector zu machen.</tra
     </message>
     <message>
         <location filename="../softprojector.ui" line="634"/>
-        <source>Dsiplay to the screen (F4)</source>
+        <source>Display to the screen (F4)</source>
         <translation>Auf dem Bildschirm anzeigen (F4)</translation>
     </message>
     <message>
