@@ -834,6 +834,10 @@ Results</source>
         <source>Please enter search text</source>
         <translation>Խնդրում եմ մուտքագրեք որոնման տեքստը</translation>
     </message>
+    <message>
+        <source>Uncheck verses to leave them out of this showing. The songbook does not change.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SettingsDialog</name>

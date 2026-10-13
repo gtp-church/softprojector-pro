@@ -19,6 +19,7 @@
 
 #include "song.hpp"
 #include <QDebug>
+#include <algorithm>
 #include "spfunctions.hpp"
 
 // for future use or chord import
@@ -250,9 +251,32 @@ void Song::readData()
 
 QStringList Song::getSongTextList()
 {
-    // This function prepares a song list that will be shown in the song preview and show list.
-    // It will it will automatically prepare correct sining order of verses and choruses.
-    QStringList formatedSong; // List container for correctely ordered item. This item will be returned.
+    // This function prepares a song list that will be shown in the song preview and show list,
+    // without the verses and inserts that are left out of this showing.
+    QList<SongPart> parts = getSongParts();
+    QStringList formatedSong;
+    foreach(int i, getShownParts(parts))
+        formatedSong.append(parts.at(i).text);
+    return formatedSong;
+}
+
+static void appendParts(QList<SongPart> &song, const QStringList &texts, int stanza, bool isChorus)
+{
+    foreach(const QString &text, texts)
+    {
+        SongPart part;
+        part.text = text;
+        part.stanza = stanza;
+        part.isChorus = isChorus;
+        song.append(part);
+    }
+}
+
+QList<SongPart> Song::getSongParts()
+{
+    // Prepares the song in correct singing order of verses and choruses.
+    // Every part is tagged with the verse or insert it is sung with, so it can be left out of a showing.
+    QList<SongPart> formatedSong; // List container for correctely ordered item. This item will be returned.
     QString text, line;
     QStringList songlist;
     QStringList chorus;
@@ -260,6 +284,7 @@ QStringList Song::getSongTextList()
     bool has_vstavka=false;
     int pnum = 0;
     int chor = 0;
+    int stanza = 0;
     int listcount(0);
 
     songlist = songText.split("\n");
@@ -270,11 +295,12 @@ QStringList Song::getSongTextList()
         if(isStanzaVerseTitle(line))
         {
             // Fill Verse
+            ++stanza;
             text = getStanzaBlock(pnum,songlist);
-            formatedSong.append(text);
+            appendParts(formatedSong, QStringList(text), stanza, false);
 
             if (has_chorus)// add Chorus stansa to the formated list if it exists
-                formatedSong.append(chorus);
+                appendParts(formatedSong, chorus, stanza, true);
 
             has_vstavka = false;
         }
@@ -288,18 +314,19 @@ QStringList Song::getSongTextList()
             if(has_chorus)
                 removeLastChorus(chorus,formatedSong);
 
-            formatedSong.append(text);
+            appendParts(formatedSong, QStringList(text), stanza, false);
 
             if (has_chorus)// add Chorus stansa to the formated list if it exists
-                formatedSong.append(chorus);
+                appendParts(formatedSong, chorus, stanza, true);
 
             has_vstavka = false;
         }
         else if (isStanzaSlideTitle(line))
         {
             // Fill Insert
+            ++stanza;
             text = getStanzaBlock(pnum,songlist);
-            formatedSong.append(text);
+            appendParts(formatedSong, QStringList(text), stanza, false);
 
             // Chorus is not added to Insert, if one is needed,
             // it should be added when song is edited, otherwise
@@ -317,20 +344,20 @@ QStringList Song::getSongTextList()
             ++chor;
 
             if (chor == 1) // if first Chorus, add chorus to formated list
-                formatedSong.append(chorus);
+                appendParts(formatedSong, chorus, stanza, true);
             else if ((chor == 2) && !has_vstavka ) // if second chorus and Insert was not added
             {
                 // remove exising chorus
                 removeLastChorus(chorusold,formatedSong);
 
                 // and add new chorus to formated list
-                formatedSong.append(chorus);
+                appendParts(formatedSong, chorus, stanza, true);
                 chor--;
             }
             else if ((chor == 2) && has_vstavka ) // if second chorus and Insert was added
             {
                 // and add new chorus to formated list
-                formatedSong += chorus;
+                appendParts(formatedSong, chorus, stanza, true);
                 chor-- ;
             }
             has_vstavka = false;
@@ -342,12 +369,47 @@ QStringList Song::getSongTextList()
 
             removeLastChorus(chorus,formatedSong);
             chorus.append(text);
-            formatedSong.append(chorus);// replace removed chorus parts with complete chorus list
+            appendParts(formatedSong, chorus, stanza, true);// replace removed chorus parts with complete chorus list
         }
         ++pnum;
     }
 
     return formatedSong;
+}
+
+QList<int> Song::getShownParts(const QList<SongPart> &parts)
+{
+    // Indexes of the parts that are shown. If every verse is left out, show the whole song.
+    QList<int> shown;
+    for(int i(0); i < parts.count(); ++i)
+    {
+        if(!skippedStanzas.contains(parts.at(i).stanza))
+            shown.append(i);
+    }
+    if(shown.isEmpty())
+    {
+        for(int i(0); i < parts.count(); ++i)
+            shown.append(i);
+    }
+    return shown;
+}
+
+QString Song::getSkippedStanzas() const
+{
+    // Stored in schedule files as "2,4"
+    QList<int> stanzas = skippedStanzas.values();
+    std::sort(stanzas.begin(), stanzas.end());
+    QStringList list;
+    foreach(int stanza, stanzas)
+        list.append(QString::number(stanza));
+    return list.join(",");
+}
+
+void Song::setSkippedStanzas(const QString &stanzas)
+{
+    skippedStanzas.clear();
+    foreach(const QString &stanza, stanzas.split(",", QString::SkipEmptyParts))
+        skippedStanzas.insert(stanza.toInt());
 }
 
 QString Song::getStanzaBlock(int &i, QStringList &list)
@@ -373,7 +435,7 @@ QString Song::getStanzaBlock(int &i, QStringList &list)
     return block.trimmed();
 }
 
-void Song::removeLastChorus(QStringList ct, QStringList &list)
+void Song::removeLastChorus(QStringList ct, QList<SongPart> &list)
 {
     for(int i(0);i<ct.count();++i)
         list.removeLast();

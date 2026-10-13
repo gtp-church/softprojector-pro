@@ -3218,6 +3218,10 @@ Please try again with different file name.</source>
         <comment>Notes to songs</comment>
         <translation type="unfinished">Заметки:</translation>
     </message>
+    <message>
+        <source>Uncheck verses to leave them out of this showing. The songbook does not change.</source>
+        <translation>Снимите галочку с куплетов, которые не нужно показывать. Сборник при этом не меняется.</translation>
+    </message>
 </context>
 <context>
     <name>SongbooksModel</name>

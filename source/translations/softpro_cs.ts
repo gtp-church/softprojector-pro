@@ -5153,6 +5153,10 @@ Můžete zkusit povýšit svou verzi softProjectoru.</translation>
         <source>Search:</source>
         <translation>Hledat:</translation>
     </message>
+    <message>
+        <source>Uncheck verses to leave them out of this showing. The songbook does not change.</source>
+        <translation>Zrušte zaškrtnutí slok, které se nemají zobrazit. Zpěvník se nemění.</translation>
+    </message>
 </context>
 <context>
     <name>SongbooksModel</name>

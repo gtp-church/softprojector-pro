@@ -4935,6 +4935,10 @@ You may try upgrading your version of softProjector.</source>
         <source>Search:</source>
         <translation>Пошук:</translation>
     </message>
+    <message>
+        <source>Uncheck verses to leave them out of this showing. The songbook does not change.</source>
+        <translation>Зніміть позначку з куплетів, які не потрібно показувати. Збірник при цьому не змінюється.</translation>
+    </message>
 </context>
 <context>
     <name>SongbooksModel</name>

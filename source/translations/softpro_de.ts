@@ -5065,6 +5065,10 @@ Bitte versuchen Sie, ein Upgrade Ihrer Version von softProjector zu machen.</tra
         <source>Search:</source>
         <translation>Suche:</translation>
     </message>
+    <message>
+        <source>Uncheck verses to leave them out of this showing. The songbook does not change.</source>
+        <translation>Strophen abwählen, die bei dieser Anzeige ausgelassen werden. Das Liederbuch ändert sich nicht.</translation>
+    </message>
 </context>
 <context>
     <name>SongbooksModel</name>

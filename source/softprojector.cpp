@@ -90,6 +90,7 @@ SoftProjector::SoftProjector(QWidget *parent)
     connect(bibleWidget, SIGNAL(setWaitCursor()), this, SLOT(setWaitCursor()));
     connect(bibleWidget, SIGNAL(bibleVersionChanged(QString)), this, SLOT(setPrimaryBible(QString)));
     connect(songWidget, SIGNAL(sendSong(Song, int)), this, SLOT(setSongList(Song, int)));
+    connect(songWidget, SIGNAL(songStanzasChanged(Song,bool)), this, SLOT(updateSongStanzas(Song,bool)));
     connect(songWidget, SIGNAL(setArrowCursor()), this, SLOT(setArrowCursor()));
     connect(songWidget, SIGNAL(setWaitCursor()), this, SLOT(setWaitCursor()));
     connect(announceWidget,SIGNAL(sendAnnounce(Announcement,int)), this, SLOT(setAnnounceText(Announcement,int)));
@@ -526,6 +527,47 @@ void SoftProjector::setSongList(Song song, int row)
     ui->listShow->setFocus();
     new_list = false;
     updateScreen();
+}
+
+void SoftProjector::updateSongStanzas(Song song, bool fromSchedule)
+{
+    // The verses picked for a song changed in the Songs tab
+    if(fromSchedule)
+    {
+        int row = ui->listWidgetSchedule->currentRow();
+        if(row >= 0 && row < schedule.count() && schedule.at(row).stype == "song"
+                && schedule.at(row).song.songID == song.songID)
+        {
+            schedule[row].song.skippedStanzas = song.skippedStanzas;
+            is_schedule_saved = false;
+            updateWindowText();
+        }
+    }
+
+    // If this song is in the show list, apply the new choice right away
+    if(pType != SONG || current_song.songID != song.songID || current_song.songText != song.songText)
+        return;
+
+    QList<SongPart> parts = current_song.getSongParts();
+    QList<int> oldShown = current_song.getShownParts(parts);
+    int oldRow = ui->listShow->currentRow();
+    int currentPart = (oldRow >= 0 && oldRow < oldShown.count()) ? oldShown.at(oldRow) : 0;
+
+    current_song.skippedStanzas = song.skippedStanzas;
+    QList<int> shown = current_song.getShownParts(parts);
+    // Stay on the same part, or go to the next one if it was left out
+    int row = 0;
+    while(row < shown.count() - 1 && shown.at(row) < currentPart)
+        ++row;
+
+    new_list = true;
+    ui->listShow->clear();
+    ui->listShow->addItems(current_song.getSongTextList());
+    ui->listShow->setCurrentRow(row);
+    new_list = false;
+    // Redraw only when the song is on the screens now (not hidden or cleared)
+    if(showing && ui->actionClear->isEnabled())
+        updateScreen();
 }
 
 void SoftProjector::setChapterList(QStringList chapter_list, QString caption, QItemSelection selectedItems)
@@ -2146,7 +2188,9 @@ void SoftProjector::saveSchedule(bool overWrite)
                     "'number' INTEGER, 'title' TEXT, 'category' INTEGER, 'tune' TEXT, 'wordsBy' TEXT, 'musicBy' TEXT, "
                     "'songText' TEXT, 'notes' TEXT, 'usePrivate' BOOL, 'alignV' INTEGER, 'alignH' INTEGER, 'color' INTEGER, "
                     "'font' TEXT, 'infoColor' INTEGER, 'infoFont' TEXT, 'endingColor' INTEGER, 'endingFont' TEXT, "
-                    "'useBack' BOOL, 'backImage' BLOB, 'backName' TEXT)");
+                    "'useBack' BOOL, 'backImage' BLOB, 'backName' TEXT, 'skipped' TEXT)");
+            // Schedule files saved before the verse choice existed get the column added (fails harmlessly if present)
+            sq.exec("ALTER TABLE song ADD COLUMN skipped TEXT");
             sq.exec("CREATE TABLE IF NOT EXISTS 'slideshow' ('scid' INTEGER, 'ssid' INTEGER, 'name' TEXT, 'info' TEXT)");
             sq.exec("CREATE TABLE IF NOT EXISTS 'slides' ('scid' INTEGER, 'sid' INTEGER, 'name' TEXT, 'path' TEXT, "
                     "'porder' INTEGER, 'image' BLOB, 'imageSmall' BLOB, 'imagePreview' BLOB)");
@@ -2204,8 +2248,8 @@ void SoftProjector::saveScheduleItemNew(QSqlQuery &q, int scid, const Song &s)
 {
     q.prepare("INSERT INTO song (scid,songid,sbid,sbName,number,title,category,tune,wordsBy,musicBy,"
               "songText,notes,usePrivate,alignV,alignH,color,font,infoColor,infoFont,endingColor,"
-              "endingFont,useBack,backImage,backName) "
-              "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+              "endingFont,useBack,backImage,backName,skipped) "
+              "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
     q.addBindValue(scid);
     q.addBindValue(s.songID);
     q.addBindValue(s.songbook_id);
@@ -2230,6 +2274,7 @@ void SoftProjector::saveScheduleItemNew(QSqlQuery &q, int scid, const Song &s)
     q.addBindValue(s.useBackground);
     q.addBindValue(pixToByte(s.background));
     q.addBindValue(s.backgroundName);
+    q.addBindValue(s.getSkippedStanzas());
     q.exec();
 }
 
@@ -2319,6 +2364,8 @@ void SoftProjector::saveScheduleUpdate(QSqlQuery &q)
         else    // Update existing schedule item
         {
             q.exec(QString("UPDATE schedule SET sorder = %1 WHERE id = %2").arg(i+1).arg(sc.scid));
+            if(sc.stype == "song")
+                saveScheduleItemUpdate(q,sc.scid,sc.song);
             //if(sc.stype == "bible")
             //    saveScheduleItemUpdate(q,sc.scid,sc.bible);
             //else if(sc.stype == "song")
@@ -2368,7 +2415,11 @@ void SoftProjector::saveScheduleItemUpdate(QSqlQuery &q, int scid, const BibleHi
 
 void SoftProjector::saveScheduleItemUpdate(QSqlQuery &q, int scid, const Song &s)
 {
-
+    // Only the verse choice can change for a song that is already in the schedule file
+    q.prepare("UPDATE song SET skipped = ? WHERE scid = ?");
+    q.addBindValue(s.getSkippedStanzas());
+    q.addBindValue(scid);
+    q.exec();
 }
 
 void SoftProjector::saveScheduleItemUpdate(QSqlQuery &q, int scid, const SlideShow &s)
@@ -2515,6 +2566,7 @@ void SoftProjector::openScheduleItem(QSqlQuery &q, const int scid, Song &s)
     s.useBackground = r.field("useBack").value().toBool();
     s.background.loadFromData(r.field("backImage").value().toByteArray());
     s.backgroundName = r.field("backName").value().toString();
+    s.setSkippedStanzas(r.field("skipped").value().toString());
 }
 
 void SoftProjector::openScheduleItem(QSqlQuery &q, const int scid, SlideShow &s)

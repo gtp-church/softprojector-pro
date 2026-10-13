@@ -181,6 +181,7 @@ private slots:
     void on_listShow_currentRowChanged(int currentRow);
     void on_actionClose_triggered();
     void setSongList(Song song, int row);
+    void updateSongStanzas(Song song, bool fromSchedule);
     void setAnnounceText(Announcement announce, int row);
     void setChapterList(QStringList chapter_list, QString caption, QItemSelection selectedItems);
     void setPrimaryBible(QString bibleId);

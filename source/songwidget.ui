@@ -378,6 +378,9 @@
        </item>
        <item>
         <widget class="QListWidget" name="listPreview">
+         <property name="toolTip">
+          <string>Uncheck verses to leave them out of this showing. The songbook does not change.</string>
+         </property>
          <property name="minimumSize">
           <size>
            <width>150</width>

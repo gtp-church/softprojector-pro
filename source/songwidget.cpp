@@ -169,9 +169,32 @@ void SongWidget::selectMatchingSong(QString text)
 
 void SongWidget::sendToPreview(Song song)
 {
-    QStringList song_list = song.getSongTextList();
-    ui->listPreview->clear();
-    ui->listPreview->addItems(song_list);
+    // Songs from the songbook get the verses picked for them earlier
+    isSongFromSchelude = false;
+    song.skippedStanzas = skippedStanzas.value(song.songID);
+    showPreview(song);
+}
+
+void SongWidget::showPreview(Song song)
+{
+    // The preview lists the whole song. Verses and inserts get a check box
+    // to leave them out of the showing.
+    {
+        QSignalBlocker blocker(ui->listPreview);
+        ui->listPreview->clear();
+        preview_parts = song.getSongParts();
+        foreach(const SongPart &part, preview_parts)
+        {
+            QListWidgetItem *item = new QListWidgetItem(part.text, ui->listPreview);
+            // List items are user checkable by default; only verses and inserts get a check box
+            if(!part.isChorus && part.stanza > 0)
+                item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+            else
+                item->setFlags(item->flags() & ~Qt::ItemIsUserCheckable);
+        }
+    }
+    preview_song = song;
+    updatePreviewStanzas();
     ui->listPreview->setCurrentRow(0);
     ui->preview_label->setText(song.title);
     if(song.notes.isEmpty())
@@ -181,14 +204,71 @@ void SongWidget::sendToPreview(Song song)
         ui->label_notes->setText(QString("%1\n%2").arg(tr("Notes:","Notes to songs")).arg(song.notes));
         ui->label_notes->setVisible(true);
     }
-    preview_song = song;
+}
+
+void SongWidget::updatePreviewStanzas()
+{
+    QSignalBlocker blocker(ui->listPreview);
+    for(int i(0); i < ui->listPreview->count() && i < preview_parts.count(); ++i)
+    {
+        QListWidgetItem *item = ui->listPreview->item(i);
+        bool skipped = preview_song.skippedStanzas.contains(preview_parts.at(i).stanza);
+        if(item->flags() & Qt::ItemIsUserCheckable)
+            item->setCheckState(skipped ? Qt::Unchecked : Qt::Checked);
+        if(skipped)
+            item->setForeground(palette().brush(QPalette::Disabled, QPalette::Text));
+        else
+            item->setData(Qt::ForegroundRole, QVariant());
+    }
+}
+
+void SongWidget::on_listPreview_itemChanged(QListWidgetItem *item)
+{
+    // A verse was checked or unchecked: this changes the showing, not the songbook
+    int row = ui->listPreview->row(item);
+    if(row < 0 || row >= preview_parts.count() || !(item->flags() & Qt::ItemIsUserCheckable))
+        return;
+
+    int stanza = preview_parts.at(row).stanza;
+    if(item->checkState() == Qt::Checked)
+        preview_song.skippedStanzas.remove(stanza);
+    else
+        preview_song.skippedStanzas.insert(stanza);
+
+    // At least one verse has to stay
+    QSet<int> shownStanzas;
+    foreach(const SongPart &part, preview_parts)
+    {
+        if(part.stanza > 0)
+            shownStanzas.insert(part.stanza);
+    }
+    if(shownStanzas.subtract(preview_song.skippedStanzas).isEmpty())
+        preview_song.skippedStanzas.remove(stanza);
+
+    updatePreviewStanzas();
+    if(!isSongFromSchelude)
+        skippedStanzas.insert(preview_song.songID, preview_song.skippedStanzas);
+    emit songStanzasChanged(preview_song, isSongFromSchelude);
+}
+
+int SongWidget::getShowRow(int previewRow)
+{
+    // The show list has only the parts that are not left out.
+    // Starting from a left out part starts the showing at the next shown part.
+    QList<int> shown = preview_song.getShownParts(preview_parts);
+    for(int i(0); i < shown.count(); ++i)
+    {
+        if(shown.at(i) >= previewRow)
+            return i;
+    }
+    return qMax(0, shown.count() - 1);
 }
 
 void SongWidget::sendToPreviewFromSchedule(Song &song)
 {
     ui->songs_view->clearSelection();
     isSongFromSchelude = true;
-    sendToPreview(song);
+    showPreview(song); // A schedule song keeps its own verse choice
 }
 
 void SongWidget::sendToProjector(Song song, int row)
@@ -298,7 +378,7 @@ void SongWidget::on_song_num_spinbox_editingFinished()
 
 void SongWidget::on_btnLive_clicked()
 {
-    sendToProjector(preview_song, ui->listPreview->currentRow()); // Send current selected
+    sendToProjector(preview_song, getShowRow(ui->listPreview->currentRow())); // Send current selected
 }
 
 void SongWidget::on_lineEditSearch_textEdited(QString text)
@@ -355,6 +435,7 @@ void SongWidget::on_songs_view_doubleClicked(QModelIndex index)
     // Called when a song is double-clicked
     int row = proxy_model->mapToSource(index).row();
     Song song = songs_model->getSong(row);
+    song.skippedStanzas = skippedStanzas.value(song.songID);
 
     emit addToSchedule(song);
     sendToPreview(song);
@@ -373,7 +454,7 @@ void SongWidget::on_songs_view_clicked(QModelIndex index)
 
 void SongWidget::on_listPreview_doubleClicked(QModelIndex index)
 {
-    sendToProjector(preview_song, index.row());
+    sendToProjector(preview_song, getShowRow(index.row()));
 }
 
 void SongWidget::updateSongbooks()
@@ -423,6 +504,7 @@ void SongWidget::deleteSong()
 {
     song_database.deleteSong(currentSong().songID);
     preview_song = Song();
+    preview_parts.clear();
     ui->preview_label->clear();
     ui->listPreview->clear();
     int row = ui->songs_view->currentIndex().row();

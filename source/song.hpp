@@ -56,6 +56,15 @@ public:
     QPixmap background;
 };
 
+class SongPart
+{
+    // One item of a song in singing order
+public:
+    QString text;
+    int stanza; // Number (from 1) of the verse or insert this part is sung with; 0 for a chorus before the first verse
+    bool isChorus;
+};
+
 class Song
 {
     // Class for storing song information: number, name, songbook
@@ -69,6 +78,10 @@ public:
     void saveUpdate();
     void saveNew();
     QStringList getSongTextList();
+    QList<SongPart> getSongParts();
+    QList<int> getShownParts(const QList<SongPart> &parts);
+    QString getSkippedStanzas() const;
+    void setSkippedStanzas(const QString &stanzas);
     Stanza getStanza(int current);
     QString getSongbookName();
     bool isValid();
@@ -98,11 +111,13 @@ public:
     bool useBackground;
     QString backgroundName;
     QPixmap background;
+    // Verses and inserts (numbered from 1) left out of this showing. The songbook is not changed.
+    QSet<int> skippedStanzas;
 
 private:
     void setDefaults();
     QString getStanzaBlock(int &i, QStringList &list);
-    void removeLastChorus(QStringList ct, QStringList &list);
+    void removeLastChorus(QStringList ct, QList<SongPart> &list);
 };
 
 class SongsModel : public QAbstractTableModel

@@ -62,10 +62,12 @@ signals:
     void setArrowCursor();
     void sendSong(Song song, int currentItem);
     void addToSchedule(Song &song);
+    void songStanzasChanged(Song song, bool fromSchedule);
 
 private slots:
     void on_comboBoxCategory_currentIndexChanged(int index);
     void on_listPreview_doubleClicked(QModelIndex index);
+    void on_listPreview_itemChanged(QListWidgetItem *item);
     void on_songs_view_clicked(QModelIndex index);
     void on_song_num_spinbox_editingFinished();
     void on_songs_view_doubleClicked(QModelIndex index);
@@ -75,6 +77,7 @@ private slots:
     void on_songbook_menu_currentIndexChanged(int index);
     void selectMatchingSong(QString title);
     void sendToPreview(Song song);
+    void showPreview(Song song);
     void loadSongbooks();
     void updateButtonStates();
     void filterModeChanged();
@@ -95,6 +98,11 @@ private:
     bool isSongFromSchelude;
     bool isScheduleSongEdited;
     Song preview_song;
+    QList<SongPart> preview_parts;
+    // Verses left out of the showing, per song id. Kept until the program is closed.
+    QHash<int, QSet<int> > skippedStanzas;
+    void updatePreviewStanzas();
+    int getShowRow(int previewRow);
 
     QList<int> cat_ids;
     QList<Song> allSongs;
