@@ -104,6 +104,86 @@ bool connect(QString database_file)
     }
 }
 
+void applyDataFixes(const QString &appDir, const QString &databaseDir)
+{
+    // Corrections of the data (for example of a Bible translation) come with program updates as
+    // SQL files in the DataFixes folder. Each file is applied once, in name order. The database
+    // file itself is never replaced by an update, so changes made in the church are kept.
+    QDir fixesDir(appDir + QDir::separator() + "DataFixes");
+    QStringList files = fixesDir.entryList(QStringList("*.sql"), QDir::Files, QDir::Name);
+    if(files.isEmpty())
+        return;
+
+    QSqlQuery sq;
+    QStringList pending = files;
+    sq.exec("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'DataFixes'");
+    if(sq.first())
+    {
+        sq.exec("SELECT name FROM DataFixes");
+        while(sq.next())
+            pending.removeAll(sq.value(0).toString());
+    }
+    sq.finish();
+    if(pending.isEmpty())
+        return;
+
+    // Keep a copy of the database as it was before the fixes
+    QString database = databaseDir + "spData.sqlite";
+    QFile::remove(database + ".bak");
+    QFile::copy(database, database + ".bak");
+    sq.exec("CREATE TABLE IF NOT EXISTS 'DataFixes' ('name' TEXT PRIMARY KEY, 'applied' TEXT)");
+
+    QSqlDatabase db = QSqlDatabase::database();
+    foreach(const QString &name, pending)
+    {
+        QFile file(fixesDir.filePath(name));
+        if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
+            continue;
+        // Statements end with ";" at the end of a line; lines starting with "--" are comments
+        QStringList lines;
+        foreach(const QString &line, QString::fromUtf8(file.readAll()).split("\n"))
+        {
+            if(!line.trimmed().startsWith("--"))
+                lines.append(line);
+        }
+        QStringList statements = lines.join("\n").split(QRegularExpression(";\\s*\n"));
+
+        db.transaction();
+        bool ok = true;
+        QString error;
+        foreach(const QString &statement, statements)
+        {
+            if(statement.trimmed().isEmpty())
+                continue;
+            if(!sq.exec(statement))
+            {
+                ok = false;
+                error = sq.lastError().text() + "\n\n" + statement.trimmed();
+                break;
+            }
+        }
+        if(ok)
+        {
+            sq.prepare("INSERT INTO DataFixes (name, applied) VALUES (?, ?)");
+            sq.addBindValue(name);
+            sq.addBindValue(QDateTime::currentDateTime().toString(Qt::ISODate));
+            ok = sq.exec();
+            error = sq.lastError().text();
+        }
+        if(ok)
+            db.commit();
+        else
+        {
+            db.rollback();
+            qWarning() << "Data fix" << name << "failed:" << error;
+            QMessageBox::warning(0, "SoftProjector",
+                                 QString("Could not apply data fix %1. The database was not changed.\n\n%2")
+                                 .arg(name).arg(error));
+            return;
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -231,6 +311,9 @@ int main(int argc, char *argv[])
         return 1;
     }
     // Database is of correct version
+    sq.finish(); // An unfinished query would keep tables locked for the data fixes
+
+    applyDataFixes(a.applicationDirPath(), database_dir);
 
     SoftProjector w;
     w.setAppDataDir(QDir(database_dir));

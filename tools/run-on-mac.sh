@@ -27,6 +27,8 @@ for ts in translations/softpro_*.ts; do
   "$QT_DIR/bin/lrelease" -silent "$ts" -qm "$BIN_DIR/translations/$(basename "${ts%.ts}").qm"
 done
 cp translations/flag_*.png "$BIN_DIR/translations/"
+rm -rf "$BIN_DIR/DataFixes"
+cp -R "$REPO/DataFixes" "$BIN_DIR/"
 
 if [ "${1:-}" = "--reset-db" ] || [ ! -f "$BIN_DIR/spData.sqlite" ]; then
   cp "$REPO/spData.sqlite" "$BIN_DIR/spData.sqlite"
