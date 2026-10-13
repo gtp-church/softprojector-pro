@@ -73,9 +73,11 @@ signals:
     void setArrowCursor();
     void goLive(QStringList chapter_list, QString caption, QItemSelection selectItems);
     void bibleVersionChanged(QString bibleId);
+    void verseTextChanged();
 
 private slots:
     void on_comboBoxBibleVersion_activated(int index);
+    void showVerseMenu(const QPoint &pos);
     void on_history_listWidget_doubleClicked(QModelIndex index);
     void on_history_listWidget_currentRowChanged(int currentRow);
     void on_search_results_list_doubleClicked(QModelIndex index);
@@ -96,6 +98,7 @@ private:
     void reloadBibleVersions();
     bool getSelectedLocation(int &book, int &chapter, int &firstVerse, int &lastVerse);
     void selectVerses(int book, int chapter, int firstVerse, int lastVerse);
+    void editVerseText(int row);
 
     BibleVersionSettings mySettings;
     Ui::BibleWidget *ui;

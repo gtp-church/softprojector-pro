@@ -1126,6 +1126,26 @@ Zkuste změnit hlavní Bibli a otevřete soubor s projektem znovu.</translation>
         <source>Bible translation shown on the screens. Switching it updates the screens right away.</source>
         <translation>Překlad Bible na obrazovkách. Po změně se obrazovky hned aktualizují.</translation>
     </message>
+    <message>
+        <source>Edit Verse Text...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit Verse Text</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Part %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only this translation is changed, in the SoftProjector database.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The verse text cannot be empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>BiblesModel</name>

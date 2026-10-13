@@ -590,6 +590,26 @@ Results</source>
         <source>Bible translation shown on the screens. Switching it updates the screens right away.</source>
         <translation>Перевод Библии на экранах. При смене текст на экранах сразу обновляется.</translation>
     </message>
+    <message>
+        <source>Edit Verse Text...</source>
+        <translation>Исправить текст стиха...</translation>
+    </message>
+    <message>
+        <source>Edit Verse Text</source>
+        <translation>Исправление текста стиха</translation>
+    </message>
+    <message>
+        <source>Part %1</source>
+        <translation>Часть %1</translation>
+    </message>
+    <message>
+        <source>Only this translation is changed, in the SoftProjector database.</source>
+        <translation>Текст меняется только в этом переводе, в базе SoftProjector.</translation>
+    </message>
+    <message>
+        <source>The verse text cannot be empty.</source>
+        <translation>Текст стиха не может быть пустым.</translation>
+    </message>
 </context>
 <context>
     <name>BiblesModel</name>

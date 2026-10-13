@@ -581,6 +581,26 @@ Results</source>
         <source>Bible translation shown on the screens. Switching it updates the screens right away.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Edit Verse Text...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit Verse Text</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Part %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only this translation is changed, in the SoftProjector database.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The verse text cannot be empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MediaWidget</name>

@@ -90,6 +90,14 @@ SoftProjector::SoftProjector(QWidget *parent)
     connect(bibleWidget, SIGNAL(setArrowCursor()), this, SLOT(setArrowCursor()));
     connect(bibleWidget, SIGNAL(setWaitCursor()), this, SLOT(setWaitCursor()));
     connect(bibleWidget, SIGNAL(bibleVersionChanged(QString)), this, SLOT(setPrimaryBible(QString)));
+    connect(bibleWidget, &BibleWidget::verseTextChanged, this, [this]{
+        // A verse was corrected: show the new text in the show list and on the screens
+        if(pType != BIBLE || ui->listShow->count() == 0)
+            return;
+        reloadBibleShowList();
+        if(showing && ui->actionClear->isEnabled())
+            updateScreen();
+    });
     connect(songWidget, SIGNAL(sendSong(Song, int)), this, SLOT(setSongList(Song, int)));
     connect(songWidget, SIGNAL(songStanzasChanged(Song,bool)), this, SLOT(updateSongStanzas(Song,bool)));
     connect(songWidget, SIGNAL(setArrowCursor()), this, SLOT(setArrowCursor()));

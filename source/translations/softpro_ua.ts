@@ -1037,6 +1037,26 @@ results.</source>
         <source>Bible translation shown on the screens. Switching it updates the screens right away.</source>
         <translation>Переклад Біблії на екранах. Після зміни текст на екранах одразу оновлюється.</translation>
     </message>
+    <message>
+        <source>Edit Verse Text...</source>
+        <translation>Виправити текст вірша...</translation>
+    </message>
+    <message>
+        <source>Edit Verse Text</source>
+        <translation>Виправлення тексту вірша</translation>
+    </message>
+    <message>
+        <source>Part %1</source>
+        <translation>Частина %1</translation>
+    </message>
+    <message>
+        <source>Only this translation is changed, in the SoftProjector database.</source>
+        <translation>Текст змінюється лише в цьому перекладі, у базі SoftProjector.</translation>
+    </message>
+    <message>
+        <source>The verse text cannot be empty.</source>
+        <translation>Текст вірша не може бути порожнім.</translation>
+    </message>
 </context>
 <context>
     <name>BiblesModel</name>

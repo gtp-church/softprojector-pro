@@ -20,6 +20,10 @@
 #include "biblewidget.hpp"
 #include "ui_biblewidget.h"
 #include "song.hpp"
+#include <QDialogButtonBox>
+#include <QMenu>
+#include <QMessageBox>
+#include <QPlainTextEdit>
 //#include <time.h>
 
 //double diffclock(clock_t clock1,clock_t clock2)
@@ -45,6 +49,111 @@ BibleWidget::BibleWidget(QWidget *parent) :
     ui->search_results_list->setItemDelegate(highlight);
 
     ui->comboBoxBibleVersion->installEventFilter(this);
+
+    ui->chapter_preview_list->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->chapter_preview_list, &QWidget::customContextMenuRequested, this, &BibleWidget::showVerseMenu);
+}
+
+void BibleWidget::showVerseMenu(const QPoint &pos)
+{
+    QListWidgetItem *item = ui->chapter_preview_list->itemAt(pos);
+    if(!item)
+        return;
+    QMenu menu;
+    QAction *editAction = menu.addAction(tr("Edit Verse Text..."));
+    if(menu.exec(ui->chapter_preview_list->viewport()->mapToGlobal(pos)) == editAction)
+        editVerseText(ui->chapter_preview_list->row(item));
+}
+
+void BibleWidget::editVerseText(int row)
+{
+    // Fixes a mistake in a verse of the translation shown in the list. Other translations do not change.
+    if(row < 0 || row >= bible.previewIdList.count())
+        return;
+
+    // One verse in the list can be stored in several rows of the database
+    QStringList ids = bible.previewIdList.at(row).split(",");
+    QStringList texts;
+    QSqlQuery sq;
+    foreach(const QString &id, ids)
+    {
+        sq.prepare("SELECT verse_text FROM BibleVerse WHERE verse_id = ? AND bible_id = ?");
+        sq.addBindValue(id);
+        sq.addBindValue(bible.getBibleId());
+        sq.exec();
+        texts.append(sq.first() ? sq.value(0).toString().trimmed() : QString());
+    }
+
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Edit Verse Text"));
+    dialog.setMinimumWidth(500);
+    QVBoxLayout *layout = new QVBoxLayout(&dialog);
+    QLabel *caption = new QLabel(QString("<b>%1 %2:%3</b> &mdash; %4")
+                                 .arg(getCurrentBook().toHtmlEscaped()).arg(bible.previewChapter)
+                                 .arg(bible.previewVerseNumbers.value(row))
+                                 .arg(bible.getBibleName().toHtmlEscaped()), &dialog);
+    layout->addWidget(caption);
+    QList<QPlainTextEdit*> edits;
+    for(int i(0); i < texts.count(); ++i)
+    {
+        if(texts.count() > 1)
+            layout->addWidget(new QLabel(tr("Part %1").arg(i + 1), &dialog));
+        QPlainTextEdit *edit = new QPlainTextEdit(texts.at(i), &dialog);
+        edit->setTabChangesFocus(true);
+        layout->addWidget(edit);
+        edits.append(edit);
+    }
+    QLabel *note = new QLabel(tr("Only this translation is changed, in the SoftProjector database."), &dialog);
+    note->setWordWrap(true);
+    layout->addWidget(note);
+    QDialogButtonBox *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, [&]{
+        foreach(QPlainTextEdit *edit, edits)
+        {
+            if(edit->toPlainText().simplified().isEmpty())
+            {
+                QMessageBox::warning(&dialog, dialog.windowTitle(), tr("The verse text cannot be empty."));
+                return;
+            }
+        }
+        dialog.accept();
+    });
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    layout->addWidget(buttons);
+    if(dialog.exec() != QDialog::Accepted)
+        return;
+
+    bool changed = false;
+    for(int i(0); i < ids.count(); ++i)
+    {
+        QString text = edits.at(i)->toPlainText().simplified();
+        if(text == texts.at(i).simplified())
+            continue;
+        sq.prepare("UPDATE BibleVerse SET verse_text = ? WHERE verse_id = ? AND bible_id = ?");
+        sq.addBindValue(text);
+        sq.addBindValue(ids.at(i));
+        sq.addBindValue(bible.getBibleId());
+        sq.exec();
+        changed = true;
+    }
+    if(!changed)
+        return;
+
+    // Show the new text in the list and keep the same verses selected
+    QList<int> selectedRows;
+    for(int i(0); i < ui->chapter_preview_list->count(); ++i)
+    {
+        if(ui->chapter_preview_list->item(i)->isSelected())
+            selectedRows.append(i);
+    }
+    bible.loadOperatorBible();
+    currentBook.clear(); // The chapter is cached, load it again
+    on_listChapterNum_currentTextChanged(ui->listChapterNum->currentItem()->text());
+    ui->chapter_preview_list->setCurrentRow(row);
+    foreach(int r, selectedRows)
+        ui->chapter_preview_list->item(r)->setSelected(true);
+
+    emit verseTextChanged();
 }
 
 BibleWidget::~BibleWidget()
