@@ -35,6 +35,7 @@ public:
     Schedule(SlideShow &s);
     Schedule(VideoInfo &m);
     Schedule(Announcement &a);
+    QString getDisplayName() const;
 
     QString stype;
     QString name;

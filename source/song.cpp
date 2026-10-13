@@ -405,6 +405,29 @@ QString Song::getSkippedStanzas() const
     return list.join(",");
 }
 
+QString Song::getShownVerses()
+{
+    // Numbers of the verses that are sung, e.g. "1,3,5". Empty when nothing is left out.
+    if(skippedStanzas.isEmpty())
+        return QString();
+
+    QStringList verses;
+    QSet<int> seen;
+    int verse = 0;
+    foreach(const SongPart &part, getSongParts())
+    {
+        if(part.isChorus || part.stanza == 0 || seen.contains(part.stanza))
+            continue;
+        seen.insert(part.stanza);
+        if(!isStanzaVerseTitle(part.text.section('\n', 0, 0)))
+            continue; // Inserts are not numbered
+        ++verse;
+        if(!skippedStanzas.contains(part.stanza))
+            verses.append(QString::number(verse));
+    }
+    return verses.join(",");
+}
+
 void Song::setSkippedStanzas(const QString &stanzas)
 {
     skippedStanzas.clear();

@@ -539,6 +539,7 @@ void SoftProjector::updateSongStanzas(Song song, bool fromSchedule)
                 && schedule.at(row).song.songID == song.songID)
         {
             schedule[row].song.skippedStanzas = song.skippedStanzas;
+            ui->listWidgetSchedule->item(row)->setText(schedule.at(row).getDisplayName());
             is_schedule_saved = false;
             updateWindowText();
         }
@@ -1888,7 +1889,7 @@ void SoftProjector::reloadShceduleList()
     {
         QListWidgetItem *itm = new QListWidgetItem;
         itm->setIcon(s.icon);
-        itm->setText(s.name);
+        itm->setText(s.getDisplayName());
         ui->listWidgetSchedule->addItem(itm);
     }
     is_schedule_saved = false;

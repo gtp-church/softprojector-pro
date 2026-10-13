@@ -42,6 +42,19 @@ Schedule::Schedule(Song &s)
     song = s;
 }
 
+QString Schedule::getDisplayName() const
+{
+    // A song that leaves verses out shows the verses that are sung: "12 Title (1,3,5)"
+    if(stype == "song")
+    {
+        Song s = song;
+        QString verses = s.getShownVerses();
+        if(!verses.isEmpty())
+            return QString("%1 (%2)").arg(name).arg(verses);
+    }
+    return name;
+}
+
 Schedule::Schedule(SlideShow &s)
 {
     scid = -1;

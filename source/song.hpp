@@ -81,6 +81,7 @@ public:
     QList<SongPart> getSongParts();
     QList<int> getShownParts(const QList<SongPart> &parts);
     QString getSkippedStanzas() const;
+    QString getShownVerses();
     void setSkippedStanzas(const QString &stanzas);
     Stanza getStanza(int current);
     QString getSongbookName();
