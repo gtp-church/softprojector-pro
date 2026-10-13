@@ -43,6 +43,8 @@ BibleWidget::BibleWidget(QWidget *parent) :
 
     highlight = new HighlighterDelegate(ui->search_results_list);
     ui->search_results_list->setItemDelegate(highlight);
+
+    ui->comboBoxBibleVersion->installEventFilter(this);
 }
 
 BibleWidget::~BibleWidget()
@@ -64,11 +66,39 @@ void BibleWidget::changeEvent(QEvent *e)
     }
 }
 
+bool BibleWidget::eventFilter(QObject *object, QEvent *event)
+{
+    // Scrolling the mouse wheel over the translation list must not switch the translation during a service
+    if(object == ui->comboBoxBibleVersion && event->type() == QEvent::Wheel)
+        return true;
+    return QWidget::eventFilter(object, event);
+}
+
 void BibleWidget::setSettings(BibleVersionSettings &sets)
 {
     QString initial_bible = mySettings.operatorBible;
     mySettings = sets;
     loadBibles(initial_bible);
+    reloadBibleVersions();
+}
+
+void BibleWidget::reloadBibleVersions()
+{
+    // Fill the translation list next to the verse field and select the primary bible
+    QSignalBlocker blocker(ui->comboBoxBibleVersion);
+    ui->comboBoxBibleVersion->clear();
+    QSqlQuery sq;
+    sq.exec("SELECT id, bible_name FROM BibleVersions");
+    while(sq.next())
+        ui->comboBoxBibleVersion->addItem(sq.value(1).toString().trimmed(), sq.value(0).toString());
+    ui->comboBoxBibleVersion->setCurrentIndex(ui->comboBoxBibleVersion->findData(mySettings.primaryBible));
+}
+
+void BibleWidget::on_comboBoxBibleVersion_activated(int index)
+{
+    // Give the keyboard back to the verse list, so arrow keys move verses, not the translation
+    ui->chapter_preview_list->setFocus();
+    emit bibleVersionChanged(ui->comboBoxBibleVersion->itemData(index).toString());
 }
 
 void BibleWidget::loadBibles(QString initialId)
@@ -87,12 +117,77 @@ void BibleWidget::loadBibles(QString initialId)
     // If it is different, then reload the bible list
     if(initialId!=mySettings.operatorBible)
     {
+        // Keep the selected passage selected in the newly loaded translation
+        int book(0), chapter(0), firstVerse(0), lastVerse(0);
+        bool hadSelection = getSelectedLocation(book, chapter, firstVerse, lastVerse);
+
         bible.setBiblesId(mySettings.operatorBible);
         bible.loadOperatorBible();
+        // Book names may be the same in both translations, so the cached chapter would not reload
+        currentBook.clear();
+        currentChapter = 0;
         ui->listBook->clear();
         ui->listBook->addItems(bible.getBooks());
         ui->listBook->setCurrentRow(0);
+
+        if(hadSelection)
+            selectVerses(book, chapter, firstVerse, lastVerse);
     }
+}
+
+bool BibleWidget::getSelectedLocation(int &book, int &chapter, int &firstVerse, int &lastVerse)
+{
+    int first(-1), last(-1);
+    for(int i(0); i < ui->chapter_preview_list->count(); ++i)
+    {
+        if(ui->chapter_preview_list->item(i)->isSelected())
+        {
+            if(first == -1)
+                first = i;
+            last = i;
+        }
+    }
+    if(first == -1 || last >= bible.previewVerseNumbers.count())
+        return false;
+
+    book = bible.previewBook;
+    chapter = bible.previewChapter;
+    firstVerse = bible.previewVerseNumbers.at(first);
+    lastVerse = bible.previewVerseNumbers.at(last);
+    return true;
+}
+
+void BibleWidget::selectVerses(int book, int chapter, int firstVerse, int lastVerse)
+{
+    QStringList all_books = bible.getBooks();
+    if(ui->listBook->count() != all_books.count())
+    {
+        ui->listBook->clear();
+        ui->listBook->addItems(all_books);
+    }
+
+    int bookRow = all_books.indexOf(bible.getBookName(book));
+    if(bookRow < 0)
+        return;
+    ui->listBook->setCurrentRow(bookRow);
+    if(chapter < 1 || chapter > ui->listChapterNum->count())
+        return;
+    ui->chapter_ef->setText(QString::number(chapter));
+
+    // Rows do not always match verse numbers, so look the verses up
+    int firstRow = bible.previewVerseNumbers.indexOf(firstVerse);
+    int lastRow = bible.previewVerseNumbers.indexOf(lastVerse);
+    if(firstRow < 0)
+        return;
+    if(lastRow < firstRow)
+        lastRow = firstRow;
+
+    QItemSelection sel;
+    sel.select(ui->chapter_preview_list->model()->index(firstRow,0,QModelIndex()),
+               ui->chapter_preview_list->model()->index(lastRow,0,QModelIndex()));
+    ui->chapter_preview_list->clearSelection();
+    ui->chapter_preview_list->setCurrentRow(firstRow);
+    ui->chapter_preview_list->selectionModel()->select(sel,QItemSelectionModel::Select);
 }
 
 void BibleWidget::on_listBook_currentTextChanged(QString currentText)
@@ -182,6 +277,9 @@ void BibleWidget::on_chapter_preview_list_doubleClicked(QModelIndex index)
 void BibleWidget::sendToProjector(bool add_to_history)
 {
     bible.currentIdList = bible.previewIdList;
+    bible.currentVerseNumbers = bible.previewVerseNumbers;
+    bible.currentBook = bible.previewBook;
+    bible.currentChapter = bible.previewChapter;
     QItemSelection selectedItems = ui->chapter_preview_list->selectionModel()->selection();
     if(selectedItems.count())
     {
@@ -471,25 +569,11 @@ void BibleWidget::on_history_listWidget_currentRowChanged(int currentRow)
 
 void BibleWidget::setSelectedHistory(BibleHistory &b)
 {
-    QStringList all_books = bible.getBooks();
-    if(ui->listBook->count()!=all_books.count())
-    {
-        ui->listBook->clear();
-        ui->listBook->addItems(all_books);
-    }
-    QString bk;
-    int ch,vr,vrl;
-    bible.getVerseRef(b.verseIds,bk,ch,vr);
-    vrl = bible.getVerseNumberLast(b.verseIds);
-
-    ui->listBook->setCurrentRow(all_books.indexOf(bk));
-    ui->chapter_ef->setText(QString::number(ch));
-    QItemSelection sel;
-    sel.select(ui->chapter_preview_list->model()->index(vr-1,0,QModelIndex()),
-               ui->chapter_preview_list->model()->index(vrl-1,0,QModelIndex()));
-    ui->chapter_preview_list->clearSelection();
-    ui->verse_ef->setText(QString::number(vr));
-    ui->chapter_preview_list->selectionModel()->select(sel,QItemSelectionModel::Select);
+    // History and schedule items may have been made with another translation
+    int book(0), chapter(0), verse(0);
+    if(!bible.getVerseLocation(b.verseIds, book, chapter, verse))
+        return;
+    selectVerses(book, chapter, verse, bible.getVerseNumberLast(b.verseIds));
 }
 
 void BibleWidget::on_history_listWidget_doubleClicked(QModelIndex index)

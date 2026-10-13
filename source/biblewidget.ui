@@ -446,7 +446,7 @@ Results</string>
           <number>6</number>
          </property>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout">
+          <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0,0,0">
            <property name="spacing">
             <number>6</number>
            </property>
@@ -481,6 +481,42 @@ Results</string>
                </property>
                <property name="toolTip">
                 <string>Filter criteria for the bible list. If the first character of the filter is a number, then only books starting with this number are matched. Example filters: &quot;Deuter&quot;, &quot;1Thes&quot;.</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayoutBibleVersion">
+             <item>
+              <widget class="QLabel" name="lblBibleVersion">
+               <property name="text">
+                <string>Translation:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="comboBoxBibleVersion">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>360</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>Bible translation shown on the screens. Switching it updates the screens right away.</string>
+               </property>
+               <property name="sizeAdjustPolicy">
+                <enum>QComboBox::AdjustToMinimumContentsLengthWithIcon</enum>
+               </property>
+               <property name="minimumContentsLength">
+                <number>6</number>
                </property>
               </widget>
              </item>

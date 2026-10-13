@@ -183,6 +183,8 @@ private slots:
     void setSongList(Song song, int row);
     void setAnnounceText(Announcement announce, int row);
     void setChapterList(QStringList chapter_list, QString caption, QItemSelection selectedItems);
+    void setPrimaryBible(QString bibleId);
+    void reloadBibleShowList();
     void setPictureList(QList<SlideShowItem> &image_list, int row, QString name);
     void setVideo(VideoInfo &video);
     void playVideo();

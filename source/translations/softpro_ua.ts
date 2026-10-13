@@ -1029,6 +1029,14 @@ resutls:
 results.</source>
         <translation>Нічого не знайдено.</translation>
     </message>
+    <message>
+        <source>Translation:</source>
+        <translation>Переклад:</translation>
+    </message>
+    <message>
+        <source>Bible translation shown on the screens. Switching it updates the screens right away.</source>
+        <translation>Переклад Біблії на екранах. Після зміни текст на екранах одразу оновлюється.</translation>
+    </message>
 </context>
 <context>
     <name>BiblesModel</name>

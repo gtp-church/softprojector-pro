@@ -85,7 +85,11 @@ public:
     Bible();
     QStringList verseList;
     QStringList previewIdList; // Verses that are in the preview (chapter) list
+    QList<int> previewVerseNumbers;
+    int previewBook, previewChapter;
     QStringList currentIdList; // Verses that are in the show list
+    QList<int> currentVerseNumbers;
+    int currentBook, currentChapter;
     QList<BibleBook> books;
 public slots:
     QList<BibleSearch> searchBible(bool begins, QRegExp searchExp);
@@ -96,10 +100,13 @@ public slots:
     void getVerseRef(QString vId, QString &book, int &chapter, int &verse);
     int getVerseNumberLast(QString vId);
     QStringList getChapter(int book, int chapter);
+    QStringList getChapterVerses(int book, int chapter, QStringList &idList, QList<int> &verseNumbers);
+    bool getVerseLocation(QString vId, int &book, int &chapter, int &verse);
     void getVerseAndCaption(QString &verse, QString &caption, QString verId, QString &bibId, bool useAbbr);
     int getCurrentBookRow(QString book);
     Verse getCurrentVerseAndCaption(QList<int> currentRows, BibleSettings& sets, BibleVersionSettings& bv);
     void setBiblesId(QString& id);
+    QString getBibleId(){return bibleId;}
     QString getBibleName();
     void loadOperatorBible();
 private:

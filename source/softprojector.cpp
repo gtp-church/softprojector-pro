@@ -88,6 +88,7 @@ SoftProjector::SoftProjector(QWidget *parent)
             this, SLOT(setChapterList(QStringList, QString, QItemSelection)));
     connect(bibleWidget, SIGNAL(setArrowCursor()), this, SLOT(setArrowCursor()));
     connect(bibleWidget, SIGNAL(setWaitCursor()), this, SLOT(setWaitCursor()));
+    connect(bibleWidget, SIGNAL(bibleVersionChanged(QString)), this, SLOT(setPrimaryBible(QString)));
     connect(songWidget, SIGNAL(sendSong(Song, int)), this, SLOT(setSongList(Song, int)));
     connect(songWidget, SIGNAL(setArrowCursor()), this, SLOT(setArrowCursor()));
     connect(songWidget, SIGNAL(setWaitCursor()), this, SLOT(setWaitCursor()));
@@ -548,10 +549,87 @@ void SoftProjector::setChapterList(QStringList chapter_list, QString caption, QI
         ui->rbMultiVerse->setChecked(false);
 
     ui->listShow->setCurrentRow(selectedItems.first().top());
-    ui->listShow->selectionModel()->select(selectedItems,QItemSelectionModel::Select);
+    // selectedItems belong to the Bible tab's list. Select the same rows in this list's own model,
+    // otherwise the selection disappears as soon as the Bible tab loads another chapter.
+    QItemSelection showSelection;
+    foreach(const QItemSelectionRange &range, selectedItems)
+        showSelection.select(ui->listShow->model()->index(range.top(),0), ui->listShow->model()->index(range.bottom(),0));
+    ui->listShow->selectionModel()->select(showSelection,QItemSelectionModel::Select);
     ui->listShow->setFocus();
     new_list = false;
     updateScreen();
+}
+
+// Makes bibleId the primary bible. A translation that was shown next to it takes the old primary's place.
+static void makePrimaryBible(BibleVersionSettings &sets, const QString &bibleId)
+{
+    if(sets.secondaryBible == bibleId)
+        sets.secondaryBible = sets.primaryBible;
+    if(sets.trinaryBible == bibleId)
+        sets.trinaryBible = sets.primaryBible;
+    sets.primaryBible = bibleId;
+}
+
+void SoftProjector::setPrimaryBible(QString bibleId)
+{
+    // Called when a translation is picked next to the verse field. It applies to both screens.
+    if(bibleId.isEmpty() || (bibleId == mySettings.bibleSets.primaryBible
+                             && bibleId == mySettings.bibleSets2.primaryBible))
+        return;
+
+    QString oldOperatorBible = bibleWidget->bible.getBibleId();
+    makePrimaryBible(mySettings.bibleSets, bibleId);
+    makePrimaryBible(mySettings.bibleSets2, bibleId);
+    mySettings.saveSettings();
+    theme.bible.versions = mySettings.bibleSets;
+    theme.bible2.versions = mySettings.bibleSets2;
+    bibleWidget->setSettings(mySettings.bibleSets);
+
+    if(pType != BIBLE || ui->listShow->count() == 0)
+        return;
+    if(bibleWidget->bible.getBibleId() != oldOperatorBible)
+        reloadBibleShowList();
+    // Redraw only when the verse is on the screens now (not hidden or cleared)
+    if(showing && ui->actionClear->isEnabled())
+        updateScreen();
+}
+
+void SoftProjector::reloadBibleShowList()
+{
+    // The operator bible changed: put the same passage, in the new translation, into the show list
+    Bible &bible = bibleWidget->bible;
+    QStringList ids;
+    QList<int> verseNumbers;
+    QStringList verses = bible.getChapterVerses(bible.currentBook, bible.currentChapter, ids, verseNumbers);
+    if(verses.isEmpty())
+        return; // No such chapter in the new translation, keep the list as it is
+
+    QList<int> selectedVerses;
+    for(int i(0); i < ui->listShow->count() && i < bible.currentVerseNumbers.count(); ++i)
+    {
+        if(ui->listShow->item(i)->isSelected())
+            selectedVerses.append(bible.currentVerseNumbers.at(i));
+    }
+    int oldRow = ui->listShow->currentRow();
+    int currentVerse = (oldRow >= 0 && oldRow < bible.currentVerseNumbers.count())
+            ? bible.currentVerseNumbers.at(oldRow) : -1;
+
+    bible.currentIdList = ids;
+    bible.currentVerseNumbers = verseNumbers;
+
+    new_list = true;
+    ui->labelShow->setText(QString("%1 %2").arg(bible.getBookName(bible.currentBook)).arg(bible.currentChapter));
+    ui->listShow->clear();
+    ui->listShow->addItems(verses);
+    int row = verseNumbers.indexOf(currentVerse);
+    ui->listShow->setCurrentRow(row >= 0 ? row : qBound(0, oldRow, verses.count() - 1));
+    foreach(int verse, selectedVerses)
+    {
+        int r = verseNumbers.indexOf(verse);
+        if(r >= 0)
+            ui->listShow->item(r)->setSelected(true);
+    }
+    new_list = false;
 }
 
 void SoftProjector::setPictureList(QList<SlideShowItem> &image_list,int row,QString name)

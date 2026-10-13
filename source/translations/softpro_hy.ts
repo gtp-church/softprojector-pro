@@ -573,6 +573,14 @@ Results</source>
         <source>Please enter search text</source>
         <translation>Խնդրում եմ մուտքագրեք որոնման տեքստը</translation>
     </message>
+    <message>
+        <source>Translation:</source>
+        <translation>Թարգմանություն:</translation>
+    </message>
+    <message>
+        <source>Bible translation shown on the screens. Switching it updates the screens right away.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MediaWidget</name>

@@ -21,6 +21,8 @@
 
 Bible::Bible()
 {
+    previewBook = previewChapter = 0;
+    currentBook = currentChapter = 0;
 }
 
 void Bible::setBiblesId(QString& id)
@@ -82,6 +84,27 @@ QString Bible::getBookName(int id)
 
 void Bible::getVerseRef(QString vId, QString &book, int &chapter, int &verse)
 {
+    int bookId(0);
+    book.clear();
+    chapter = verse = 0;
+    if(getVerseLocation(vId, bookId, chapter, verse))
+        book = getBookName(bookId);
+}
+
+int Bible::getVerseNumberLast(QString vId)
+{
+    int book(0), chapter(0), verse(0);
+    if(vId.contains(","))
+        vId = vId.split(",").last();
+
+    getVerseLocation(vId, book, chapter, verse);
+    return verse;
+}
+
+bool Bible::getVerseLocation(QString vId, int &book, int &chapter, int &verse)
+{
+    // Finds where the first verse of vId is. Verse ids may come from another translation
+    // (history, schedule, a translation switch), so fall back to any bible that has the verse.
     if(vId.contains(","))
         vId = vId.split(",").first();
 
@@ -89,34 +112,24 @@ void Bible::getVerseRef(QString vId, QString &book, int &chapter, int &verse)
     {
         if(bv.verseId == vId)
         {
-            book = QString::number(bv.book);
+            book = bv.book;
             chapter = bv.chapter;
             verse = bv.verseNumber;
+            return true;
         }
     }
 
-    foreach (const BibleBook bk, books)
+    QSqlQuery sq;
+    sq.prepare("SELECT book, chapter, verse FROM BibleVerse WHERE verse_id = ?");
+    sq.addBindValue(vId);
+    if(sq.exec() && sq.first())
     {
-        if(bk.bookId == book)
-            book = bk.book;
+        book = sq.value(0).toInt();
+        chapter = sq.value(1).toInt();
+        verse = sq.value(2).toInt();
+        return true;
     }
-}
-
-int Bible::getVerseNumberLast(QString vId)
-{
-    int vernum(0);
-    if(vId.contains(","))
-        vId = vId.split(",").last();
-
-    foreach(const BibleVerse &bv, operatorBible)
-    {
-        if(bv.verseId == vId)
-        {
-            vernum = bv.verseNumber;
-            break;
-        }
-    }
-    return vernum;
+    return false;
 }
 
 int Bible::getCurrentBookRow(QString book)
@@ -135,35 +148,46 @@ int Bible::getCurrentBookRow(QString book)
 
 QStringList Bible::getChapter(int book, int chapter)
 {
+    previewBook = book;
+    previewChapter = chapter;
+    verseList = getChapterVerses(book, chapter, previewIdList, previewVerseNumbers);
+    return verseList;
+}
+
+QStringList Bible::getChapterVerses(int book, int chapter, QStringList &idList, QList<int> &verseNumbers)
+{
+    QStringList verses;
     QString verseText, id;
     int verse(0), verse_old(0);
 
-    previewIdList.clear();
-    verseList.clear();
+    idList.clear();
+    verseNumbers.clear();
     foreach (const BibleVerse &bv,operatorBible)
     {
         if(bv.book == book && bv.chapter == chapter)
         {
             verse  = bv.verseNumber;
-            if(verse==verse_old)
+            if(verse==verse_old && !verses.isEmpty())
             {
                 verseText = verseText.simplified() + " " + bv.verseText;
                 id += "," + bv.verseId;
-                verseList.removeLast();
-                previewIdList.removeLast();
+                verses.removeLast();
+                idList.removeLast();
+                verseNumbers.removeLast();
             }
             else
             {
                 verseText = bv.verseText;
                 id = bv.verseId;
             }
-            verseList << QString::number(verse) + ". " + verseText;
-            previewIdList << id;
+            verses << QString::number(verse) + ". " + verseText;
+            idList << id;
+            verseNumbers << verse;
             verse_old = verse;
         }
     }
 
-    return verseList;
+    return verses;
 }
 
 Verse Bible::getCurrentVerseAndCaption(QList<int>  currentRows, BibleSettings& sets, BibleVersionSettings &bv)

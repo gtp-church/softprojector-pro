@@ -1118,6 +1118,14 @@ Try changing primary Bible and reopen project file.</source>
         <translation type="obsolete">Nepodařilo se najít nějaký nebo všechny verše Bible v souboru v současné hlavní Bibli.
 Zkuste změnit hlavní Bibli a otevřete soubor s projektem znovu.</translation>
     </message>
+    <message>
+        <source>Translation:</source>
+        <translation>Překlad:</translation>
+    </message>
+    <message>
+        <source>Bible translation shown on the screens. Switching it updates the screens right away.</source>
+        <translation>Překlad Bible na obrazovkách. Po změně se obrazovky hned aktualizují.</translation>
+    </message>
 </context>
 <context>
     <name>BiblesModel</name>

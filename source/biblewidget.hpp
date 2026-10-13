@@ -65,13 +65,16 @@ public slots:
 
 protected:
     virtual void changeEvent(QEvent *e);
+    bool eventFilter(QObject *object, QEvent *event);
 
 signals:
     void setWaitCursor();
     void setArrowCursor();
     void goLive(QStringList chapter_list, QString caption, QItemSelection selectItems);
+    void bibleVersionChanged(QString bibleId);
 
 private slots:
+    void on_comboBoxBibleVersion_activated(int index);
     void on_history_listWidget_doubleClicked(QModelIndex index);
     void on_history_listWidget_currentRowChanged(int currentRow);
     void on_search_results_list_doubleClicked(QModelIndex index);
@@ -89,6 +92,10 @@ private slots:
     void addToHistory();
 
 private:
+    void reloadBibleVersions();
+    bool getSelectedLocation(int &book, int &chapter, int &firstVerse, int &lastVerse);
+    void selectVerses(int book, int chapter, int firstVerse, int lastVerse);
+
     BibleVersionSettings mySettings;
     Ui::BibleWidget *ui;
     HighlighterDelegate *highlight;

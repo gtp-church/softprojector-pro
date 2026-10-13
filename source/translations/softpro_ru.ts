@@ -582,6 +582,14 @@ Results</source>
         <source>Please enter search text</source>
         <translation>Пожалуйста, введите текст для поиска</translation>
     </message>
+    <message>
+        <source>Translation:</source>
+        <translation>Перевод:</translation>
+    </message>
+    <message>
+        <source>Bible translation shown on the screens. Switching it updates the screens right away.</source>
+        <translation>Перевод Библии на экранах. При смене текст на экранах сразу обновляется.</translation>
+    </message>
 </context>
 <context>
     <name>BiblesModel</name>

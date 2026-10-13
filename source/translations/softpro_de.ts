@@ -1102,6 +1102,14 @@ Ergebnisse
 results.</source>
         <translation>Keine Such-Ergebnisse.</translation>
     </message>
+    <message>
+        <source>Translation:</source>
+        <translation>Übersetzung:</translation>
+    </message>
+    <message>
+        <source>Bible translation shown on the screens. Switching it updates the screens right away.</source>
+        <translation>Bibelübersetzung auf den Bildschirmen. Beim Wechsel werden die Bildschirme sofort aktualisiert.</translation>
+    </message>
 </context>
 <context>
     <name>BiblesModel</name>
