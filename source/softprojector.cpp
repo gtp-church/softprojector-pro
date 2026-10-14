@@ -478,6 +478,7 @@ void SoftProjector::setAnnounceText(Announcement announce, int row)
     pType = ANNOUCEMENT;
     ui->widgetMultiVerse->setVisible(false);
     ui->listShow->setItemDelegate(defaultShowDelegate);
+    ui->listShow->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
     ui->rbMultiVerse->setChecked(false);
     mediaControls->setVisible(false);
     showing = true;
@@ -505,6 +506,7 @@ void SoftProjector::setSongList(Song song, int row)
     pType = SONG;
     ui->widgetMultiVerse->setVisible(false);
     ui->listShow->setItemDelegate(defaultShowDelegate);
+    ui->listShow->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
     ui->rbMultiVerse->setChecked(false);
     mediaControls->setVisible(false);
     showing = true;
@@ -576,6 +578,7 @@ void SoftProjector::setChapterList(QStringList chapter_list, QString caption, QI
     pType = BIBLE;
     ui->widgetMultiVerse->setVisible(true);
     ui->listShow->setItemDelegate(defaultShowDelegate);
+    ui->listShow->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
     mediaControls->setVisible(false);
     showing = true;
     new_list = true;
@@ -682,6 +685,7 @@ void SoftProjector::setPictureList(QList<SlideShowItem> &image_list,int row,QStr
     showing = true;
     ui->widgetMultiVerse->setVisible(false);
     ui->listShow->setItemDelegate(defaultShowDelegate);
+    ui->listShow->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
     ui->rbMultiVerse->setChecked(false);
     mediaControls->setVisible(false);
     new_list = true;
@@ -718,6 +722,7 @@ void SoftProjector::setPresentation(Presentation presentation, int row)
     ui->rbMultiVerse->setChecked(false);
     mediaControls->setVisible(false);
     ui->listShow->setItemDelegate(slideDelegate);
+    ui->listShow->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     new_list = true;
     ui->labelIcon->setPixmap(QPixmap(":/icons/icons/screen.png").scaled(16,16,Qt::IgnoreAspectRatio,Qt::SmoothTransformation));
     ui->labelShow->setText(presentation.name);
@@ -747,6 +752,7 @@ void SoftProjector::setVideo(VideoInfo &video)
     showing = true;
     ui->widgetMultiVerse->setVisible(false);
     ui->listShow->setItemDelegate(defaultShowDelegate);
+    ui->listShow->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
     ui->rbMultiVerse->setChecked(false);
     if(!mediaControls->isVisible())
     {
@@ -1019,6 +1025,12 @@ bool SoftProjector::eventFilter(QObject *object, QEvent *event)
         // Slides follow the width of the panel
         if(object == ui->listShow->viewport() && event->type() == QEvent::Resize)
             ui->listShow->doItemsLayout();
+        // The mouse wheel moves big slides smoothly, not three slides at a time
+        if(object == ui->listShow->viewport() && event->type() == QEvent::Wheel)
+        {
+            PresentationWidget::scrollSlides(ui->listShow, static_cast<QWheelEvent *>(event));
+            return true;
+        }
         // Space shows the selected slide big, without changing the screens
         if(object == ui->listShow && event->type() == QEvent::KeyPress
                 && static_cast<QKeyEvent *>(event)->key() == Qt::Key_Space)

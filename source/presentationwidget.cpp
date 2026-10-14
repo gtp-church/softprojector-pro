@@ -31,6 +31,7 @@
 #include <QImageReader>
 #include <QKeyEvent>
 #include <QPainter>
+#include <QScrollBar>
 #include <QSettings>
 #include <QSplitter>
 #include <QVBoxLayout>
@@ -167,6 +168,13 @@ private:
     QPixmap picture;
 };
 
+void PresentationWidget::scrollSlides(QListView *list, QWheelEvent *wheel)
+{
+    QScrollBar *bar = list->verticalScrollBar();
+    int step = qMax(40, list->sizeHintForRow(0) / 3);
+    bar->setValue(bar->value() - wheel->angleDelta().y() * step / 120);
+}
+
 void PresentationWidget::showSlideViewer(QWidget *parent, const Presentation &presentation, int slide)
 {
     if(slide < 0 || slide >= presentation.slides.count())
@@ -216,6 +224,7 @@ PresentationWidget::PresentationWidget(QWidget *parent) :
     listSlides->setMovement(QListView::Static);
     listSlides->setSpacing(4);
     listSlides->setUniformItemSizes(true);
+    listSlides->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     slideDelegate = new SlideDelegate(listSlides);
     listSlides->setItemDelegate(slideDelegate);
     listSlides->installEventFilter(this);
@@ -292,6 +301,8 @@ bool PresentationWidget::eventFilter(QObject *object, QEvent *event)
             sliderSize->setValue(sliderSize->value() + (wheel->angleDelta().y() > 0 ? 40 : -40));
             return true;
         }
+        scrollSlides(listSlides, wheel);
+        return true;
     }
     if(object == listSlides && event->type() == QEvent::KeyPress
             && static_cast<QKeyEvent *>(event)->key() == Qt::Key_Space)
