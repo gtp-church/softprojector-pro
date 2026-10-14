@@ -1,6 +1,7 @@
 # Program files built by .github/workflows/build.yml. Do not edit by hand.
-# source-tree: 3aca5c9501542f4270a8f23cec7496a3d03b8a22
+# source-tree: 12aaaf9d6305e0250bdf493a32b287f085877c05
 D3Dcompiler_47.dll
+Licenses/pdfium.txt
 Qt5Core.dll
 Qt5Gui.dll
 Qt5Multimedia.dll
@@ -53,12 +54,13 @@ imageformats/qwbmp.dll
 imageformats/qwebp.dll
 libEGL.dll
 libGLESv2.dll
-libgcc_s_dw2-1.dll
+libgcc_s_seh-1.dll
 libstdc++-6.dll
 libwinpthread-1.dll
 mediaservice/dsengine.dll
 mediaservice/qtmedia_audioengine.dll
 opengl32sw.dll
+pdfium.dll
 platforms/qwindows.dll
 playlistformats/qtmultimedia_m3u.dll
 printsupport/windowsprintersupport.dll
