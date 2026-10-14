@@ -30,7 +30,6 @@ SoftProjector::SoftProjector(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::SoftProjectorClass)
 {
     // Created further down, but the interface is translated before that
-    slidePreview = 0;
     returnToPresentationAction = 0;
 
     // Load settings
@@ -178,29 +177,12 @@ SoftProjector::SoftProjector(QWidget *parent)
     // Set up video controls
     ui->verticalLayoutDisplayControls->insertWidget(1,mediaControls);
 
-    // Current and next slide of a presentation, above the slide list
+    // Presentation slides are drawn across the whole show list
     lastPresentationSlide = 0;
-    slidePreview = new QWidget;
-    QGridLayout *previewLayout = new QGridLayout(slidePreview);
-    previewLayout->setContentsMargins(0, 0, 0, 0);
-    labelSlideNowTitle = new QLabel;
-    labelSlideNextTitle = new QLabel;
-    labelSlideNow = new QLabel;
-    labelSlideNext = new QLabel;
-    foreach(QLabel *label, QList<QLabel*>() << labelSlideNow << labelSlideNext)
-    {
-        label->setAlignment(Qt::AlignCenter);
-        label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
-        label->setStyleSheet("background-color: black;");
-    }
-    previewLayout->addWidget(labelSlideNowTitle, 0, 0);
-    previewLayout->addWidget(labelSlideNextTitle, 0, 1);
-    previewLayout->addWidget(labelSlideNow, 1, 0);
-    previewLayout->addWidget(labelSlideNext, 1, 1);
-    ui->verticalLayoutDisplayControls->insertWidget(1, slidePreview);
-    slidePreview->setVisible(false);
-    ui->listShow->installEventFilter(this); // Previews follow the width of the panel
-    retranslateSlidePreview();
+    defaultShowDelegate = ui->listShow->itemDelegate();
+    slideDelegate = new SlideDelegate(ui->listShow);
+    ui->listShow->installEventFilter(this);
+    ui->listShow->viewport()->installEventFilter(this);
     mediaControls->setVisible(false);
     mediaControls->setVolume(100);
     connect(pds1,SIGNAL(videoPositionChanged(qint64)),
@@ -495,7 +477,7 @@ void SoftProjector::setAnnounceText(Announcement announce, int row)
     currentAnnounce = announce;
     pType = ANNOUCEMENT;
     ui->widgetMultiVerse->setVisible(false);
-    slidePreview->setVisible(false);
+    ui->listShow->setItemDelegate(defaultShowDelegate);
     ui->rbMultiVerse->setChecked(false);
     mediaControls->setVisible(false);
     showing = true;
@@ -522,7 +504,7 @@ void SoftProjector::setSongList(Song song, int row)
     // Display the specified song text in the right-most column of softProjector
     pType = SONG;
     ui->widgetMultiVerse->setVisible(false);
-    slidePreview->setVisible(false);
+    ui->listShow->setItemDelegate(defaultShowDelegate);
     ui->rbMultiVerse->setChecked(false);
     mediaControls->setVisible(false);
     showing = true;
@@ -593,7 +575,7 @@ void SoftProjector::setChapterList(QStringList chapter_list, QString caption, QI
     // Called to show a bible verse from a chapter in the preview list
     pType = BIBLE;
     ui->widgetMultiVerse->setVisible(true);
-    slidePreview->setVisible(false);
+    ui->listShow->setItemDelegate(defaultShowDelegate);
     mediaControls->setVisible(false);
     showing = true;
     new_list = true;
@@ -699,7 +681,7 @@ void SoftProjector::setPictureList(QList<SlideShowItem> &image_list,int row,QStr
     pType = PICTURE;
     showing = true;
     ui->widgetMultiVerse->setVisible(false);
-    slidePreview->setVisible(false);
+    ui->listShow->setItemDelegate(defaultShowDelegate);
     ui->rbMultiVerse->setChecked(false);
     mediaControls->setVisible(false);
     new_list = true;
@@ -735,14 +717,13 @@ void SoftProjector::setPresentation(Presentation presentation, int row)
     ui->widgetMultiVerse->setVisible(false);
     ui->rbMultiVerse->setChecked(false);
     mediaControls->setVisible(false);
-    slidePreview->setVisible(true);
+    ui->listShow->setItemDelegate(slideDelegate);
     new_list = true;
     ui->labelIcon->setPixmap(QPixmap(":/icons/icons/screen.png").scaled(16,16,Qt::IgnoreAspectRatio,Qt::SmoothTransformation));
     ui->labelShow->setText(presentation.name);
     ui->labelSongNotes->setVisible(false);
     ui->listShow->clear();
     ui->listShow->setSpacing(1);
-    ui->listShow->setIconSize(QSize(160,90));
     for(int i(0); i < presentation.thumbnails.count(); ++i)
         ui->listShow->addItem(new QListWidgetItem(QIcon(presentation.thumbnails.at(i)), QString::number(i + 1)));
     ui->listShow->setCurrentRow(qBound(0, row, presentation.slides.count() - 1));
@@ -758,12 +739,6 @@ void SoftProjector::returnToPresentation()
         setPresentation(lastPresentation, lastPresentationSlide);
 }
 
-void SoftProjector::retranslateSlidePreview()
-{
-    labelSlideNowTitle->setText(tr("Now"));
-    labelSlideNextTitle->setText(tr("Next"));
-}
-
 void SoftProjector::setVideo(VideoInfo &video)
 {
     // Called when showing video
@@ -771,7 +746,7 @@ void SoftProjector::setVideo(VideoInfo &video)
     currentVideo = video;
     showing = true;
     ui->widgetMultiVerse->setVisible(false);
-    slidePreview->setVisible(false);
+    ui->listShow->setItemDelegate(defaultShowDelegate);
     ui->rbMultiVerse->setChecked(false);
     if(!mediaControls->isVisible())
     {
@@ -1032,34 +1007,26 @@ void SoftProjector::showPresentationSlide(int currentRow)
         pds2->renderSlideShow(slide, slideSettings);
 
     lastPresentationSlide = currentRow;
-    updateSlidePreview();
+    // The slide on the screens at the top of the list, the next ones below it
+    ui->listShow->scrollToItem(ui->listShow->item(currentRow), QAbstractItemView::PositionAtTop);
     presentationWidget->setCurrentSlide(currentPresentation, currentRow);
-}
-
-void SoftProjector::updateSlidePreview()
-{
-    // The operator sees the slide on the screens and the next one. Sized from the slide list,
-    // which is laid out already when the preview is first shown.
-    int row = lastPresentationSlide;
-    if(pType != PRESENTATION || row < 0 || row >= currentPresentation.thumbnails.count())
-        return;
-    int width = qMax(80, (ui->listShow->width() - 6) / 2);
-    int height = width * 9 / 16;
-    foreach(QLabel *label, QList<QLabel*>() << labelSlideNow << labelSlideNext)
-        label->setFixedHeight(height);
-    labelSlideNow->setPixmap(QPixmap(currentPresentation.thumbnails.at(row))
-                             .scaled(width, height, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    if(row + 1 < currentPresentation.thumbnails.count())
-        labelSlideNext->setPixmap(QPixmap(currentPresentation.thumbnails.at(row + 1))
-                                  .scaled(width, height, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    else
-        labelSlideNext->clear();
 }
 
 bool SoftProjector::eventFilter(QObject *object, QEvent *event)
 {
-    if(object == ui->listShow && event->type() == QEvent::Resize)
-        updateSlidePreview();
+    if(pType == PRESENTATION)
+    {
+        // Slides follow the width of the panel
+        if(object == ui->listShow->viewport() && event->type() == QEvent::Resize)
+            ui->listShow->doItemsLayout();
+        // Space shows the selected slide big, without changing the screens
+        if(object == ui->listShow && event->type() == QEvent::KeyPress
+                && static_cast<QKeyEvent *>(event)->key() == Qt::Key_Space)
+        {
+            PresentationWidget::showSlideViewer(this, currentPresentation, ui->listShow->currentRow());
+            return true;
+        }
+    }
     return QMainWindow::eventFilter(object, event);
 }
 
@@ -1440,6 +1407,12 @@ void SoftProjector::clickMediaControl(const char *buttonName)
 void SoftProjector::on_listShow_doubleClicked(QModelIndex index)
 {
     // Called when the user double clicks on a row in the preview table.
+    // Ctrl + double-click on a slide shows it big, without changing the screens.
+    if(pType == PRESENTATION && (QApplication::keyboardModifiers() & Qt::ControlModifier))
+    {
+        PresentationWidget::showSlideViewer(this, currentPresentation, index.row());
+        return;
+    }
     showing = true;
     updateScreen();
 }
@@ -2034,8 +2007,6 @@ void SoftProjector::retranslateUis()
     // Retranslating restores the keys and key hints from the .ui files; put the chosen ones back
     captureKeyHints();
     applyShortcutsToUi();
-    if(slidePreview)
-        retranslateSlidePreview();
     updateEditActions();
     songWidget->retranslateUis();
     editWidget->retranslateUis();

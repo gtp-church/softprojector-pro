@@ -138,11 +138,9 @@ private:
     Presentation currentPresentation;
     Presentation lastPresentation;
     int lastPresentationSlide;
-    QWidget *slidePreview;
-    QLabel *labelSlideNowTitle, *labelSlideNextTitle, *labelSlideNow, *labelSlideNext;
+    SlideDelegate *slideDelegate;              // Slides across the whole show list
+    QAbstractItemDelegate *defaultShowDelegate; // Everything else in the show list
     QAction *returnToPresentationAction;
-    void retranslateSlidePreview();
-    void updateSlidePreview();
     void setupShortcuts();
     void addShortcut(const QString &id, const char *group, const char *name, QAction *action,
                      const QList<QKeySequence> &defaultKeys);

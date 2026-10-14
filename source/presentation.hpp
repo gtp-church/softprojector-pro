@@ -42,7 +42,7 @@ class PresentationLoader
 {
 public:
     static const int slideWidth = 1920;
-    static const int thumbnailWidth = 320;
+    static const int thumbnailWidth = 960; // Big enough for one slide across the tab
 
     static QString libraryDir();
     static QString fileFilter();

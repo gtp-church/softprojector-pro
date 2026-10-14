@@ -3581,5 +3581,21 @@ We recommend to resize images to display screen size.</source>
         <source>Could not move %1 to the Recycle Bin.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Size:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size of the slides (also Ctrl + mouse wheel)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Double-click: show on the screens. Ctrl + double-click or Space: look at the slide closely.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Slide %1 of %2</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 </TS>

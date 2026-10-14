@@ -25,9 +25,155 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QRegularExpression>
+#include <QApplication>
+#include <QDesktopWidget>
+#include <QDialog>
+#include <QImageReader>
+#include <QKeyEvent>
+#include <QPainter>
+#include <QSettings>
 #include <QSplitter>
 #include <QVBoxLayout>
+#include <QWheelEvent>
 #include <QtConcurrent>
+
+SlideDelegate::SlideDelegate(QListView *view) :
+    QStyledItemDelegate(view), view(view), slideWidth(0)
+{
+}
+
+void SlideDelegate::setSlideWidth(int width)
+{
+    slideWidth = width;
+}
+
+QSize SlideDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    Q_UNUSED(option);
+    Q_UNUSED(index);
+    // Never wider than the list, so the biggest size is one slide across it
+    int available = view->viewport()->width() - 2 * view->spacing() - 2;
+    int width = slideWidth > 0 ? qMin(slideWidth, available) : available;
+    width = qMax(60, width);
+    return QSize(width, width * 9 / 16 + 6);
+}
+
+void SlideDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    painter->save();
+    QRect box = option.rect.adjusted(3, 3, -3, -3);
+    painter->fillRect(box, Qt::black);
+
+    // The slide keeps its shape inside a 16:9 box
+    QIcon icon = qvariant_cast<QIcon>(index.data(Qt::DecorationRole));
+    QPixmap slide = icon.pixmap(box.size());
+    QRect target(QPoint(0, 0), slide.size().scaled(box.size(), Qt::KeepAspectRatio));
+    target.moveCenter(box.center());
+    painter->setRenderHint(QPainter::SmoothPixmapTransform);
+    painter->drawPixmap(target, slide);
+
+    QString number = index.data(Qt::DisplayRole).toString();
+    QFont font = option.font;
+    font.setBold(true);
+    painter->setFont(font);
+    QRect badge = painter->fontMetrics().boundingRect(number).adjusted(-6, -2, 6, 2);
+    badge.moveTopLeft(target.topLeft() + QPoint(4, 4));
+    painter->fillRect(badge, QColor(0, 0, 0, 170));
+    painter->setPen(Qt::white);
+    painter->drawText(badge, Qt::AlignCenter, number);
+
+    if(option.state & QStyle::State_Selected)
+    {
+        painter->setPen(QPen(option.palette.highlight(), 4));
+        painter->setBrush(Qt::NoBrush);
+        painter->drawRect(option.rect.adjusted(2, 2, -2, -2));
+    }
+    painter->restore();
+}
+
+class SlideViewer : public QDialog
+{
+    // One slide in a big size; arrows go through the slides, Esc or Space closes
+public:
+    SlideViewer(QWidget *parent, const Presentation &presentation, int slide) :
+        QDialog(parent), presentation(presentation), slide(slide)
+    {
+        label = new QLabel;
+        label->setAlignment(Qt::AlignCenter);
+        label->setStyleSheet("background-color: black;");
+        label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+        QVBoxLayout *layout = new QVBoxLayout(this);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->addWidget(label);
+        QRect screen = QApplication::desktop()->availableGeometry(parent);
+        resize(screen.width() * 8 / 10, screen.height() * 8 / 10);
+        showSlide();
+    }
+
+protected:
+    void keyPressEvent(QKeyEvent *e)
+    {
+        int count = presentation.slides.count();
+        switch(e->key())
+        {
+        case Qt::Key_Left: case Qt::Key_Up: case Qt::Key_PageUp:
+            slide = qMax(0, slide - 1);
+            break;
+        case Qt::Key_Right: case Qt::Key_Down: case Qt::Key_PageDown:
+            slide = qMin(count - 1, slide + 1);
+            break;
+        case Qt::Key_Home:
+            slide = 0;
+            break;
+        case Qt::Key_End:
+            slide = count - 1;
+            break;
+        case Qt::Key_Space:
+            reject();
+            return;
+        default:
+            QDialog::keyPressEvent(e);
+            return;
+        }
+        showSlide();
+    }
+
+    void resizeEvent(QResizeEvent *e)
+    {
+        QDialog::resizeEvent(e);
+        updatePicture();
+    }
+
+private:
+    void showSlide()
+    {
+        QImageReader reader(presentation.slides.at(slide));
+        reader.setAutoTransform(true);
+        picture = QPixmap::fromImage(reader.read());
+        setWindowTitle(QString("%1 - %2").arg(presentation.name)
+                       .arg(QCoreApplication::translate("PresentationWidget", "Slide %1 of %2")
+                            .arg(slide + 1).arg(presentation.slides.count())));
+        updatePicture();
+    }
+
+    void updatePicture()
+    {
+        label->setPixmap(picture.scaled(label->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    }
+
+    Presentation presentation;
+    int slide;
+    QLabel *label;
+    QPixmap picture;
+};
+
+void PresentationWidget::showSlideViewer(QWidget *parent, const Presentation &presentation, int slide)
+{
+    if(slide < 0 || slide >= presentation.slides.count())
+        return;
+    SlideViewer viewer(parent, presentation, slide);
+    viewer.exec();
+}
 
 static QString keyOf(const Presentation &p)
 {
@@ -66,13 +212,20 @@ PresentationWidget::PresentationWidget(QWidget *parent) :
     pushButtonGoLive->setObjectName("pushButtonGoLive"); // Found by name for the "Go Live" keys
     listSlides = new QListWidget;
     listSlides->setViewMode(QListView::IconMode);
-    listSlides->setIconSize(QSize(192, 108));
     listSlides->setResizeMode(QListView::Adjust);
     listSlides->setMovement(QListView::Static);
-    listSlides->setSpacing(6);
+    listSlides->setSpacing(4);
     listSlides->setUniformItemSizes(true);
+    slideDelegate = new SlideDelegate(listSlides);
+    listSlides->setItemDelegate(slideDelegate);
+    listSlides->installEventFilter(this);
+    listSlides->viewport()->installEventFilter(this);
     labelStatus = new QLabel;
     labelStatus->setWordWrap(true);
+    labelSize = new QLabel;
+    sliderSize = new QSlider(Qt::Horizontal);
+    sliderSize->setRange(120, PresentationLoader::thumbnailWidth);
+    sliderSize->setMaximumWidth(200);
 
     QWidget *left = new QWidget;
     QVBoxLayout *leftLayout = new QVBoxLayout(left);
@@ -90,7 +243,11 @@ PresentationWidget::PresentationWidget(QWidget *parent) :
     titleLayout->addWidget(pushButtonGoLive);
     rightLayout->addLayout(titleLayout);
     rightLayout->addWidget(listSlides, 1);
-    rightLayout->addWidget(labelStatus);
+    QHBoxLayout *statusLayout = new QHBoxLayout;
+    statusLayout->addWidget(labelStatus, 1);
+    statusLayout->addWidget(labelSize);
+    statusLayout->addWidget(sliderSize);
+    rightLayout->addLayout(statusLayout);
 
     QSplitter *splitter = new QSplitter;
     splitter->addWidget(left);
@@ -105,11 +262,52 @@ PresentationWidget::PresentationWidget(QWidget *parent) :
     connect(pushButtonRemove, &QPushButton::clicked, this, &PresentationWidget::removeFromLibrary);
     connect(pushButtonGoLive, &QPushButton::clicked, this, &PresentationWidget::goLive);
     connect(listPresentations, &QListWidget::currentRowChanged, this, &PresentationWidget::presentationSelected);
-    connect(listSlides, &QListWidget::itemDoubleClicked, this, &PresentationWidget::goLive);
+    connect(listSlides, &QListWidget::itemDoubleClicked, this, &PresentationWidget::slideDoubleClicked);
+    connect(sliderSize, &QSlider::valueChanged, this, &PresentationWidget::setSlideSize);
     connect(&loader, &QFutureWatcher<LoadResult>::finished, this, &PresentationWidget::loadFinished);
 
+    sliderSize->setValue(QSettings("SoftProjector", "SoftProjector").value("presentationSlideSize", 240).toInt());
+    setSlideSize(sliderSize->value());
     retranslateUi();
     reloadLibrary();
+}
+
+void PresentationWidget::setSlideSize(int width)
+{
+    slideDelegate->setSlideWidth(width);
+    listSlides->doItemsLayout();
+    QSettings("SoftProjector", "SoftProjector").setValue("presentationSlideSize", width);
+}
+
+bool PresentationWidget::eventFilter(QObject *object, QEvent *event)
+{
+    if(object == listSlides->viewport() && event->type() == QEvent::Resize)
+        listSlides->doItemsLayout();
+    // Ctrl + mouse wheel changes the size of the slides; Space shows the selected slide big
+    if(object == listSlides->viewport() && event->type() == QEvent::Wheel)
+    {
+        QWheelEvent *wheel = static_cast<QWheelEvent *>(event);
+        if(wheel->modifiers() & Qt::ControlModifier)
+        {
+            sliderSize->setValue(sliderSize->value() + (wheel->angleDelta().y() > 0 ? 40 : -40));
+            return true;
+        }
+    }
+    if(object == listSlides && event->type() == QEvent::KeyPress
+            && static_cast<QKeyEvent *>(event)->key() == Qt::Key_Space)
+    {
+        showSlideViewer(this, current, listSlides->currentRow());
+        return true;
+    }
+    return QWidget::eventFilter(object, event);
+}
+
+void PresentationWidget::slideDoubleClicked()
+{
+    if(QApplication::keyboardModifiers() & Qt::ControlModifier)
+        showSlideViewer(this, current, listSlides->currentRow());
+    else
+        goLive();
 }
 
 void PresentationWidget::changeEvent(QEvent *e)
@@ -133,6 +331,9 @@ void PresentationWidget::retranslateUi()
     pushButtonAddToLibrary->setText(tr("Add to Library"));
     pushButtonAddToLibrary->setToolTip(tr("Keep this presentation in the library: the Presentations folder next to the program"));
     pushButtonGoLive->setText(tr("Go Live (F5)"));
+    labelSize->setText(tr("Size:"));
+    sliderSize->setToolTip(tr("Size of the slides (also Ctrl + mouse wheel)"));
+    listSlides->setToolTip(tr("Double-click: show on the screens. Ctrl + double-click or Space: look at the slide closely."));
     updateButtons();
     if(current.slides.isEmpty() && !loader.isRunning())
         labelStatus->setText(tr("Choose a presentation on the left or open a file."));

@@ -23,8 +23,25 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
+#include <QSlider>
+#include <QStyledItemDelegate>
 #include <QWidget>
 #include "presentation.hpp"
+
+class SlideDelegate : public QStyledItemDelegate
+{
+    // Draws a slide with its number in the corner and a frame when selected.
+    // The width is fixed, or as wide as the list when it is 0.
+public:
+    explicit SlideDelegate(QListView *view);
+    void setSlideWidth(int width);
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+private:
+    QListView *view;
+    int slideWidth;
+};
 
 class PresentationWidget : public QWidget
 {
@@ -35,6 +52,8 @@ public:
     explicit PresentationWidget(QWidget *parent = 0);
     void setCurrentSlide(const Presentation &presentation, int slide);
     void openPresentation(const QStringList &files);
+    // A window with one slide in a big size, to read it without showing it on the screens
+    static void showSlideViewer(QWidget *parent, const Presentation &presentation, int slide);
 
 signals:
     void sendPresentation(Presentation presentation, int slide);
@@ -45,6 +64,7 @@ public slots:
 protected:
     void changeEvent(QEvent *e);
     void showEvent(QShowEvent *e);
+    bool eventFilter(QObject *object, QEvent *event);
 
 private slots:
     void openFiles();
@@ -52,6 +72,8 @@ private slots:
     void removeFromLibrary();
     void presentationSelected(int row);
     void goLive();
+    void slideDoubleClicked();
+    void setSlideSize(int width);
     void loadFinished();
 
 private:
@@ -72,6 +94,9 @@ private:
     QListWidget *listSlides;
     QLabel *labelTitle;
     QLabel *labelStatus;
+    QLabel *labelSize;
+    QSlider *sliderSize;
+    SlideDelegate *slideDelegate;
     QPushButton *pushButtonOpen;
     QPushButton *pushButtonAddToLibrary;
     QPushButton *pushButtonRemove;

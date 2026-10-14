@@ -3607,5 +3607,21 @@ Please try again with different file name.</source>
         <source>Could not move %1 to the Recycle Bin.</source>
         <translation>Не удалось переместить %1 в корзину.</translation>
     </message>
+    <message>
+        <source>Size:</source>
+        <translation>Размер:</translation>
+    </message>
+    <message>
+        <source>Size of the slides (also Ctrl + mouse wheel)</source>
+        <translation>Размер слайдов (также Ctrl + колёсико мыши)</translation>
+    </message>
+    <message>
+        <source>Double-click: show on the screens. Ctrl + double-click or Space: look at the slide closely.</source>
+        <translation>Двойной щелчок — на экран. Ctrl + двойной щелчок или пробел — посмотреть слайд крупно.</translation>
+    </message>
+    <message>
+        <source>Slide %1 of %2</source>
+        <translation>Слайд %1 из %2</translation>
+    </message>
 </context>
 </TS>

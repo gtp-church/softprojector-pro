@@ -5332,5 +5332,21 @@ You may try upgrading your version of softProjector.</source>
         <source>Could not move %1 to the Recycle Bin.</source>
         <translation>Не вдалося перемістити %1 до кошика.</translation>
     </message>
+    <message>
+        <source>Size:</source>
+        <translation>Розмір:</translation>
+    </message>
+    <message>
+        <source>Size of the slides (also Ctrl + mouse wheel)</source>
+        <translation>Розмір слайдів (також Ctrl + коліщатко миші)</translation>
+    </message>
+    <message>
+        <source>Double-click: show on the screens. Ctrl + double-click or Space: look at the slide closely.</source>
+        <translation>Подвійне клацання — на екран. Ctrl + подвійне клацання або пробіл — переглянути слайд великим.</translation>
+    </message>
+    <message>
+        <source>Slide %1 of %2</source>
+        <translation>Слайд %1 з %2</translation>
+    </message>
 </context>
 </TS>
