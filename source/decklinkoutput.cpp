@@ -193,7 +193,7 @@ bool DeckLinkOutput::start(const QString &device, int format, QString *error)
         *error = QCoreApplication::translate("DeckLinkOutput", "The card %1 cannot send video out.").arg(device);
         return false;
     }
-    if(output->EnableVideoOutput(outputFormats[format].mode, bmdVideoOutputFlagDefault) != S_OK)
+    if(output->EnableVideoOutput((BMDDisplayMode)outputFormats[format].mode, bmdVideoOutputFlagDefault) != S_OK)
     {
         output->Release();
         *error = QCoreApplication::translate("DeckLinkOutput",
