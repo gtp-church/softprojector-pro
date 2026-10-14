@@ -50,12 +50,15 @@ class PresentationWidget : public QWidget
 
 public:
     explicit PresentationWidget(QWidget *parent = 0);
+    ~PresentationWidget();
     void setCurrentSlide(const Presentation &presentation, int slide);
     void openPresentation(const QStringList &files);
     // A window with one slide in a big size, to read it without showing it on the screens
     static void showSlideViewer(QWidget *parent, const Presentation &presentation, int slide);
     // Scrolls a list of slides by a part of a slide per wheel step
     static void scrollSlides(QListView *list, QWheelEvent *wheel);
+    // Lays the slides out again for a new list width, once the resizing is over
+    static void relayoutSlidesLater(QListView *list);
 
 signals:
     void sendPresentation(Presentation presentation, int slide);

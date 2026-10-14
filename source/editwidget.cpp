@@ -421,7 +421,9 @@ int EditWidget::isInDatabase(Song *song)
     QSqlQuery sq;
 
     // check if song is part of songbook
-    sq.exec("SELECT id FROM Songbooks WHERE name = '" + song->songbook_name + "'");
+    sq.prepare("SELECT id FROM Songbooks WHERE name = ?");
+    sq.addBindValue(song->songbook_name);
+    sq.exec();
     while(sq.next())
         sb_id = sq.value(0).toString().trimmed();
     sq.clear();

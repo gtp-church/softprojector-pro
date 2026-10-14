@@ -18,6 +18,36 @@
 ***************************************************************************/
 
 #include "imagegenerator.hpp"
+#include <QFontInfo>
+#include <functional>
+
+// The biggest font size from start down to 1 at which the text fits; 1 when it never fits
+// (a tiny screen, huge margins), so the screens never wait for a size that does not exist.
+// Halving the range takes a few text layouts where going down a point at a time took hundreds
+// for a long passage.
+static int biggestFittingSize(int start, const std::function<bool(int)> &fits)
+{
+    start = qMax(1, start);
+    if(fits(start))
+        return start;
+    int fitting = 0, tooBig = start; // fits(fitting) is true or fitting is 0, fits(tooBig) is false
+    while(tooBig - fitting > 1)
+    {
+        int size = (fitting + tooBig) / 2;
+        if(fits(size))
+            fitting = size;
+        else
+            tooBig = size;
+    }
+    return qMax(1, fitting);
+}
+
+// Fonts are sized in points here; a font saved with a pixel size has no point size (-1)
+static void scaleFontSize(QFont &font, int factor)
+{
+    int size = font.pointSize() > 0 ? font.pointSize() : QFontInfo(font).pointSize();
+    font.setPointSize(qMax(1, size * factor));
+}
 
 
 ImageGenerator::ImageGenerator()
@@ -70,8 +100,8 @@ QPixmap ImageGenerator::generateBibleImage(Verse verse, BibleSettings &bSets)
     m_bSets = bSets;
 
 
-    m_bSets.textFont.setPointSize(m_bSets.textFont.pointSize() * 3);
-    m_bSets.captionFont.setPointSize(m_bSets.captionFont.pointSize() * 3);
+    scaleFontSize(m_bSets.textFont, 3);
+    scaleFontSize(m_bSets.captionFont, 3);
 
     // TODO:FIX
 //    m_shadow = (m_bSets.effectsType == 1 || m_bSets.effectsType == 2);
@@ -88,9 +118,9 @@ QPixmap ImageGenerator::generateSongImage(Stanza stanza, SongSettings &sSets)
     m_type = 2;
     m_stanza = stanza;
     m_sSets = sSets;
-    m_sSets.textFont.setPointSize(m_sSets.textFont.pointSize() * 3);
-    m_sSets.endingFont.setPointSize(m_sSets.endingFont.pointSize() * 3);
-    m_sSets.infoFont.setPointSize(m_sSets.infoFont.pointSize() * 3);
+    scaleFontSize(m_sSets.textFont, 3);
+    scaleFontSize(m_sSets.endingFont, 3);
+    scaleFontSize(m_sSets.infoFont, 3);
 
     // TODO:FIX
 //    m_shadow = (m_sSets.effectsType == 1 || m_sSets.effectsType == 2);
@@ -107,7 +137,7 @@ QPixmap ImageGenerator::generateAnnounceImage(AnnounceSlide announce, TextSettin
     m_type = 3;
     m_announce = announce;
     m_aSets = aSets;
-    m_aSets.textFont.setPointSize(m_aSets.textFont.pointSize() * 3);
+    scaleFontSize(m_aSets.textFont, 3);
     // TODO:FIX
 //    m_shadow = (m_aSets.effectsType == 1 || m_aSets.effectsType == 2);
 //    m_blurShadow = (m_aSets.effectsType == 2);
@@ -229,7 +259,7 @@ void ImageGenerator::drawBibleText(QPainter *painter, bool isShadow)
 
     // set maximum screen size - For primary bibile  only
     int maxh = h * m_bSets.screenUse/100; // maximun screen height
-    int maxtop; // top of max screen
+    int maxtop = top; // top of max screen
     if(m_bSets.screenPosition == 0)
         maxtop  = top;
     if(m_bSets.screenPosition == 1)
@@ -285,70 +315,39 @@ void ImageGenerator::drawBibleText(QPainter *painter, bool isShadow)
     else if(m_bSets.captionAlignment==2)
         cflags += Qt::AlignRight;
 
-    bool exit1 = false, exit2 = false, exit3 = false;
     if(!m_isTextPrepared)
     {
         m_bdSets.clear();
-        while(!(exit1 && exit2 && exit3))
-        {
+        // The caption gets smaller together with the text once it would be bigger than the text
+        const int textSize = m_bSets.textFont.pointSize();
+        const int captionSize = m_bSets.captionFont.pointSize();
+        auto fits = [&](int size) {
+            m_bSets.textFont.setPointSize(size);
+            m_bSets.captionFont.setPointSize(qMax(1, captionSize > textSize ? captionSize - (textSize - size)
+                                                                             : qMin(captionSize, size)));
+            // Figure out how much space the drawing of each translation takes at this font size
+            bool fit = true;
             if(havePrimary)
             {
-                // Prepare primary version
-                // Figure out how much space the drawing will take at the current font size:
                 drawBibleTextToRect(painter,trect1,crect1,m_verse.primary_text,m_verse.primary_caption,
                                     tflags,cflags,top,left,w,maxh);
-
-                // Make sure that all fits into the screen
-                exit1 = ((trect1.height()+crect1.height())<=maxh);
+                fit = fit && (trect1.height()+crect1.height()) <= maxh;
             }
-            else
-            {
-                exit1 = true;
-            }
-
             if(haveSecondary)
             {
-                // Prepare Secondary version
-                // Figure out how much space the drawing will take at the current font size:
                 drawBibleTextToRect(painter,trect2,crect2,m_verse.secondary_text,m_verse.secondary_caption,
                                     tflags,cflags,top2,left,w,maxh);
-
-                // Make sure that all fits into the screen
-                exit2 = ((trect2.height()+crect2.height())<=maxh);
+                fit = fit && (trect2.height()+crect2.height()) <= maxh;
             }
-            else
-            {
-                exit2 = true;
-            }
-
             if(haveTrinary)
             {
-                // Prepare Trinary version
-                // Figure out how much space the drawing will take at the current font size:
                 drawBibleTextToRect(painter,trect3,crect3,m_verse.trinary_text,m_verse.trinary_caption,
                                     tflags,cflags,top3,left,w,maxh);
-
-                // Make sure that all fits into the screen
-                exit3 = ((trect3.height()+crect3.height())<=maxh);
+                fit = fit && (trect3.height()+crect3.height()) <= maxh;
             }
-            else
-            {
-                exit3 = true;
-            }
-
-            if(!(exit1 && exit2 && exit3)) // The current font is too large, decrease and try again:
-            {
-                int current_size = m_bSets.textFont.pointSize();
-                int curCap_size = m_bSets.captionFont.pointSize();
-                current_size--;
-                m_bSets.textFont.setPointSize(current_size);
-                if (curCap_size > current_size)
-                {
-                    curCap_size--;
-                    m_bSets.captionFont.setPointSize(curCap_size);
-                }
-            }
-       }
+            return fit;
+        };
+        fits(biggestFittingSize(textSize, fits)); // Leaves the rects and fonts of the chosen size
 
         m_isTextPrepared = true;
         m_bdSets.ptRect = trect1;
@@ -524,7 +523,7 @@ void ImageGenerator::drawSongText(QPainter *painter, bool isShadow)
     int w = m_screenSize.width() - left - left;
     int h = m_screenSize.height() - top - top;
     int maxh = h * m_sSets.screenUse/100;
-    int maxtop; // top of max screen
+    int maxtop = top; // top of max screen
     if(m_sSets.screenPosition == 0)
         maxtop  = top;
     if(m_sSets.screenPosition == 1)
@@ -568,55 +567,33 @@ void ImageGenerator::drawSongText(QPainter *painter, bool isShadow)
         ending_rect = boundRectOrDrawText(painter, false, left, top, width, height, Qt::AlignHCenter | Qt::AlignTop, song_ending);
 
         // Decrease songe ending font size so that it would fit in the screen width
-        while(ending_rect.width()> width)
-        {
-            m_sSets.endingFont.setPointSize(m_sSets.endingFont.pointSize()-1);
+        auto endingFits = [&](int size) {
+            m_sSets.endingFont.setPointSize(size);
             painter->setFont(m_sSets.endingFont);
             ending_rect = boundRectOrDrawText(painter, false, left, top, width, height, Qt::AlignHCenter | Qt::AlignTop, song_ending);
-        }
+            return ending_rect.width() <= width;
+        };
+        endingFits(biggestFittingSize(m_sSets.endingFont.pointSize(), endingFits));
         endh = ending_rect.height();
 
-        // Prepare Main Text
-        painter->setFont(main_font);
-        main_rect = boundRectOrDrawText(painter, false, left, top, width, height, main_flags, main_text);
-        mainh = main_rect.height();
-        mainw = main_rect.width();
-        totalh = caph+endh+mainh;
-
         // Decrease song text to fit the screen
-        while(mainw > width || totalh > height)
-        {
-            main_font.setPointSize(main_font.pointSize() - 1);
+        auto mainFits = [&](int size) {
+            main_font.setPointSize(size);
             painter->setFont(main_font);
             main_rect = boundRectOrDrawText(painter, false, left, top, width, height, main_flags, main_text);
             mainh = main_rect.height();
             mainw = main_rect.width();
             totalh = caph+endh+mainh;
-        }
+            return mainw <= width && totalh <= height;
+        };
+        mainFits(biggestFittingSize(main_font.pointSize(), mainFits));
 
         // Check if main font is less then 4/5 of original. if so, then song preparation again with text wrap
         if(main_font.pointSize() <(m_sSets.textFont.pointSize()*4/5))
         {
             main_flags += Qt::TextWordWrap;
             main_font = m_sSets.textFont;
-
-            // Prepare Main Text
-            painter->setFont(m_sSets.textFont);
-            main_rect = boundRectOrDrawText(painter, false, left, top, width, height, main_flags, main_text);
-            mainh = main_rect.height();
-            mainw = main_rect.width();
-            totalh = caph+endh+mainh;
-
-            // Decrease song text to fit the screen
-            while(mainw > width || totalh > height)
-            {
-                main_font.setPointSize(main_font.pointSize() - 1);
-                painter->setFont(main_font);
-                main_rect = boundRectOrDrawText(painter, false, left, top, width, height, main_flags, main_text);
-                mainh = main_rect.height();
-                mainw = main_rect.width();
-                totalh = caph+endh+mainh;
-            }
+            mainFits(biggestFittingSize(main_font.pointSize(), mainFits));
         }
         m_sSets.textFont = main_font;
         m_isTextPrepared = true;
@@ -756,37 +733,20 @@ void ImageGenerator::drawAnnounceText(QPainter *painter, bool isShadow)
 
     if(!m_isTextPrepared)
     {
-        painter->setFont(font);
-        bool exit = false;
-        while( !exit )
-        {
+        auto fits = [&](int size) {
+            font.setPointSize(size);
+            painter->setFont(font);
             rect = painter->boundingRect(left, top, w, h, flags, m_announce.text);
-            exit = ( rect.width() <= w && rect.height() <= h );
-            if( !exit )
-            {
-                font.setPointSize( font.pointSize()-1 );
-                painter->setFont(font);
-            }
-        }
+            return rect.width() <= w && rect.height() <= h;
+        };
+        fits(biggestFittingSize(orig_font_size, fits));
 
         // Force wrapping of songs that have really wide lines:
         // (Do not allow font to be shrinked less than a 4/5 of the desired font)
         if( font.pointSize() < (orig_font_size*4/5) )
         {
-            font.setPointSize(orig_font_size);
-            painter->setFont(font);
             flags = (flags | Qt::TextWordWrap);
-            exit = false;
-            while( !exit )
-            {
-                rect = painter->boundingRect(left, top, w, h, flags, m_announce.text);
-                exit = ( rect.width() <= w && rect.height() <= h );
-                if( !exit )
-                {
-                    font.setPointSize( font.pointSize()-1 );
-                    painter->setFont(font);
-                }
-            }
+            fits(biggestFittingSize(orig_font_size, fits));
         }
         m_aSets.textFont = font;
         m_adSets.tRect = rect;

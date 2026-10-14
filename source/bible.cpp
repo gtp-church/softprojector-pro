@@ -195,7 +195,8 @@ Verse Bible::getCurrentVerseAndCaption(QList<int>  currentRows, BibleSettings& s
     QString verse_id;
     for(int i(0);i<currentRows.count();++i)
     {
-        verse_id += currentIdList.at(currentRows.at(i)) + ",";
+        if(currentRows.at(i) >= 0 && currentRows.at(i) < currentIdList.count())
+            verse_id += currentIdList.at(currentRows.at(i)) + ",";
     }
     verse_id.chop(1);
 

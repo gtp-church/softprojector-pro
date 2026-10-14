@@ -58,7 +58,8 @@ enum PresentationType
     ANNOUCEMENT,
     PICTURE,
     VIDEO,
-    PRESENTATION
+    PRESENTATION,
+    NOTHING // Nothing went live yet
 };
 
 class SoftProjector : public QMainWindow

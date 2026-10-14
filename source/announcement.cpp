@@ -53,7 +53,7 @@ void Announcement::readData()
     QString str = sq.value(10).toString().trimmed();
     QStringList l = str.split(",");
     alignmentV = l.at(0).toInt();
-    alignmentH = l.at(1).toInt();
+    alignmentH = l.value(1).toInt();
 }
 
 QStringList Announcement::getAnnounceList()

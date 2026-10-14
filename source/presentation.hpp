@@ -58,6 +58,8 @@ public:
     // Takes a while for big documents, so it is run in a worker thread.
     static bool load(Presentation &presentation, const std::function<void(int done, int total)> &progress,
                      QString *error);
+    // Makes loads that are running stop soon (the program is closing). There is no way back.
+    static void stopLoading();
 };
 
 #endif // PRESENTATION_HPP

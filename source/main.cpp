@@ -18,6 +18,7 @@
 ***************************************************************************/
 
 #include <QApplication>
+#include <QLockFile>
 #include <QMessageBox>
 #include <QtSql>
 #include "softprojector.hpp"
@@ -188,6 +189,20 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     a.setApplicationName("SoftProjector");
+
+    // Only one copy at a time: two would fight over the database and the projector screen.
+    // A lock left by a copy that crashed is noticed (its process is gone) and taken over.
+    QLockFile instanceLock(QDir::temp().filePath("SoftProjector.lock"));
+    instanceLock.setStaleLockTime(0);
+    if(!instanceLock.tryLock(500) && instanceLock.error() == QLockFile::LockFailedError)
+    {
+        QMessageBox mb;
+        mb.setWindowTitle("SoftProjector");
+        mb.setText("SoftProjector is already running.\nSoftProjector уже запущен.");
+        mb.setIcon(QMessageBox::Information);
+        mb.exec();
+        return 0;
+    }
 
     QPixmap pixmap(":icons/icons/splash.png");
     QSplashScreen splash(pixmap);

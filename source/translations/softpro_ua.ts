@@ -1057,6 +1057,10 @@ results.</source>
         <source>The verse text cannot be empty.</source>
         <translation>Текст вірша не може бути порожнім.</translation>
     </message>
+    <message>
+        <source>Shown: %1</source>
+        <translation>Показано: %1</translation>
+    </message>
 </context>
 <context>
     <name>BiblesModel</name>
@@ -5276,6 +5280,14 @@ You may try upgrading your version of softProjector.</source>
     <message>
         <source>PowerPoint files can be shown only on Windows with PowerPoint installed. Save the presentation as PDF to show it here.</source>
         <translation>Файли PowerPoint показуються лише на Windows із встановленим PowerPoint. Збережіть презентацію в PDF, щоб показати її тут.</translation>
+    </message>
+    <message>
+        <source>PowerPoint stopped responding. Close PowerPoint and try again.</source>
+        <translation>PowerPoint перестав відповідати. Закрийте PowerPoint і спробуйте ще раз.</translation>
+    </message>
+    <message>
+        <source>Stopped.</source>
+        <translation>Зупинено.</translation>
     </message>
 </context>
 <context>

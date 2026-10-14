@@ -30,9 +30,10 @@ class PdfRenderer
 public:
     static bool isAvailable();
 
-    // Calls pageReady for every page rendered to the given width. Returns false and sets error on failure.
+    // Calls pageReady for every page rendered to the given width; it returns false to stop.
+    // Returns false and sets error on failure.
     static bool render(const QString &pdfPath, int width,
-                       const std::function<void(int page, int pageCount, const QImage &image)> &pageReady,
+                       const std::function<bool(int page, int pageCount, const QImage &image)> &pageReady,
                        QString *error);
 };
 

@@ -112,7 +112,7 @@ void AnnounceWidget::setAnnounceList()
         QString str = sq.value(10).toString().trimmed();
         QStringList l = str.split(",");
         a.alignmentV = l.at(0).toInt();
-        a.alignmentH = l.at(1).toInt();
+        a.alignmentH = l.value(1).toInt();
         a.idNum = sq.value(11).toInt();
 
         announceList.append(a);

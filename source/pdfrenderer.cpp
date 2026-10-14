@@ -114,7 +114,7 @@ bool PdfRenderer::isAvailable()
 }
 
 bool PdfRenderer::render(const QString &pdfPath, int width,
-                         const std::function<void(int, int, const QImage &)> &pageReady, QString *error)
+                         const std::function<bool(int, int, const QImage &)> &pageReady, QString *error)
 {
     QMutexLocker locker(&pdfiumMutex);
     Pdfium &p = pdfium();
@@ -148,20 +148,31 @@ bool PdfRenderer::render(const QString &pdfPath, int width,
             continue;
         float pageWidth = p.getPageWidth(page);
         float pageHeight = p.getPageHeight(page);
+        int pageImageWidth = width;
         int height = (pageWidth > 0) ? qRound(width * pageHeight / pageWidth) : width;
+        // A very long page (a banner, a scroll) would need gigabytes at the full width
+        const int maxHeight = 4 * width;
+        if(height > maxHeight || height < 1)
+        {
+            pageImageWidth = (pageHeight > 0) ? qMax(1, qRound(maxHeight * pageWidth / pageHeight)) : width;
+            height = qBound(1, height, maxHeight);
+        }
 
-        FPDF_BITMAP bitmap = p.bitmapCreate(width, height, 0);
+        bool goOn = true;
+        FPDF_BITMAP bitmap = p.bitmapCreate(pageImageWidth, height, 0);
         if(bitmap)
         {
-            p.bitmapFillRect(bitmap, 0, 0, width, height, 0xFFFFFFFF);
-            p.renderPageBitmap(bitmap, page, 0, 0, width, height, 0, FPDF_ANNOT);
+            p.bitmapFillRect(bitmap, 0, 0, pageImageWidth, height, 0xFFFFFFFF);
+            p.renderPageBitmap(bitmap, page, 0, 0, pageImageWidth, height, 0, FPDF_ANNOT);
             // The bitmap is BGRx, which is QImage::Format_RGB32 in memory
-            QImage image((const uchar *)p.bitmapGetBuffer(bitmap), width, height,
+            QImage image((const uchar *)p.bitmapGetBuffer(bitmap), pageImageWidth, height,
                          p.bitmapGetStride(bitmap), QImage::Format_RGB32);
-            pageReady(i, pageCount, image.copy());
+            goOn = pageReady(i, pageCount, image.copy());
             p.bitmapDestroy(bitmap);
         }
         p.closePage(page);
+        if(!goOn)
+            break;
     }
     p.closeDocument(document);
     return true;

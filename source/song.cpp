@@ -916,7 +916,9 @@ void SongDatabase::deleteSong(int song_id)
 QString SongDatabase::getSongbookIdStringFromName(QString songbook_name)
 {
     QSqlQuery sq;
-    sq.exec("SELECT id FROM Songbooks WHERE name = '" + songbook_name +"'"); //ilya
+    sq.prepare("SELECT id FROM Songbooks WHERE name = ?");
+    sq.addBindValue(songbook_name);
+    sq.exec();
     sq.first();
     return sq.value(0).toString();
 }

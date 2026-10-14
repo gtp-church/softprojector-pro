@@ -31,6 +31,13 @@ SoftProjector::SoftProjector(QWidget *parent)
 {
     // Created further down, but the interface is translated before that
     returnToPresentationAction = 0;
+    pType = NOTHING;
+    showing = false;
+    new_list = false;
+    is_schedule_saved = true;
+    isSingleScreen = true;
+    hasDisplayScreen2 = false;
+    current_song_verse = 0;
 
     // Load settings
     mySettings.loadSettings();
@@ -515,6 +522,7 @@ void SoftProjector::setAnnounceText(Announcement announce, int row)
     ui->widgetMultiVerse->setVisible(false);
     ui->listShow->setItemDelegate(defaultShowDelegate);
     ui->listShow->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
+    ui->listShow->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->rbMultiVerse->setChecked(false);
     mediaControls->setVisible(false);
     showing = true;
@@ -543,6 +551,7 @@ void SoftProjector::setSongList(Song song, int row)
     ui->widgetMultiVerse->setVisible(false);
     ui->listShow->setItemDelegate(defaultShowDelegate);
     ui->listShow->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
+    ui->listShow->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->rbMultiVerse->setChecked(false);
     mediaControls->setVisible(false);
     showing = true;
@@ -615,6 +624,7 @@ void SoftProjector::setChapterList(QStringList chapter_list, QString caption, QI
     ui->widgetMultiVerse->setVisible(true);
     ui->listShow->setItemDelegate(defaultShowDelegate);
     ui->listShow->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
+    ui->listShow->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     mediaControls->setVisible(false);
     showing = true;
     new_list = true;
@@ -722,6 +732,7 @@ void SoftProjector::setPictureList(QList<SlideShowItem> &image_list,int row,QStr
     ui->widgetMultiVerse->setVisible(false);
     ui->listShow->setItemDelegate(defaultShowDelegate);
     ui->listShow->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
+    ui->listShow->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->rbMultiVerse->setChecked(false);
     mediaControls->setVisible(false);
     new_list = true;
@@ -759,6 +770,7 @@ void SoftProjector::setPresentation(Presentation presentation, int row)
     mediaControls->setVisible(false);
     ui->listShow->setItemDelegate(slideDelegate);
     ui->listShow->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    ui->listShow->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn); // Slides as wide as the list
     new_list = true;
     ui->labelIcon->setPixmap(QPixmap(":/icons/icons/screen.png").scaled(16,16,Qt::IgnoreAspectRatio,Qt::SmoothTransformation));
     ui->labelShow->setText(presentation.name);
@@ -789,6 +801,7 @@ void SoftProjector::setVideo(VideoInfo &video)
     ui->widgetMultiVerse->setVisible(false);
     ui->listShow->setItemDelegate(defaultShowDelegate);
     ui->listShow->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
+    ui->listShow->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->rbMultiVerse->setChecked(false);
     if(!mediaControls->isVisible())
     {
@@ -1060,7 +1073,7 @@ bool SoftProjector::eventFilter(QObject *object, QEvent *event)
     {
         // Slides follow the width of the panel
         if(object == ui->listShow->viewport() && event->type() == QEvent::Resize)
-            ui->listShow->doItemsLayout();
+            PresentationWidget::relayoutSlidesLater(ui->listShow);
         // The mouse wheel moves big slides smoothly, not three slides at a time
         if(object == ui->listShow->viewport() && event->type() == QEvent::Wheel)
         {
@@ -2663,8 +2676,12 @@ void SoftProjector::saveScheduleNew(QSqlQuery &q)
     for(int i(0);i < schedule.count();++i)
     {
         Schedule sc =  schedule.at(i);
-        q.exec(QString("INSERT INTO schedule (stype,name,sorder) VALUES('%1','%2',%3)")
-               .arg(sc.stype).arg(sc.name).arg(i+1));
+        // Bound values: names may have apostrophes
+        q.prepare("INSERT INTO schedule (stype,name,sorder) VALUES(?,?,?)");
+        q.addBindValue(sc.stype);
+        q.addBindValue(sc.name);
+        q.addBindValue(i+1);
+        q.exec();
         q.exec("SELECT seq FROM sqlite_sequence WHERE name = 'schedule'");
         q.first();
         sc.scid = q.value(0).toInt();
@@ -2792,8 +2809,11 @@ void SoftProjector::saveScheduleUpdate(QSqlQuery &q)
         Schedule sc =  schedule.at(i);
         if(sc.scid == -1)   // Save new schedule item that was not saved yet
         {
-            q.exec(QString("INSERT INTO schedule (stype,name,sorder) VALUES('%1','%2',%3)")
-                   .arg(sc.stype).arg(sc.name).arg(i+1));
+            q.prepare("INSERT INTO schedule (stype,name,sorder) VALUES(?,?,?)");
+            q.addBindValue(sc.stype);
+            q.addBindValue(sc.name);
+            q.addBindValue(i+1);
+            q.exec();
             q.exec("SELECT seq FROM sqlite_sequence WHERE name = 'schedule'");
             q.first();
             sc.scid = q.value(0).toInt();

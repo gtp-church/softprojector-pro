@@ -610,6 +610,10 @@ Results</source>
         <source>The verse text cannot be empty.</source>
         <translation>Текст стиха не может быть пустым.</translation>
     </message>
+    <message>
+        <source>Shown: %1</source>
+        <translation>Показано: %1</translation>
+    </message>
 </context>
 <context>
     <name>BiblesModel</name>
@@ -3551,6 +3555,14 @@ Please try again with different file name.</source>
     <message>
         <source>PowerPoint files can be shown only on Windows with PowerPoint installed. Save the presentation as PDF to show it here.</source>
         <translation>Файлы PowerPoint показываются только на Windows с установленным PowerPoint. Сохраните презентацию в PDF, чтобы показать её здесь.</translation>
+    </message>
+    <message>
+        <source>PowerPoint stopped responding. Close PowerPoint and try again.</source>
+        <translation>PowerPoint перестал отвечать. Закройте PowerPoint и попробуйте ещё раз.</translation>
+    </message>
+    <message>
+        <source>Stopped.</source>
+        <translation>Остановлено.</translation>
     </message>
 </context>
 <context>

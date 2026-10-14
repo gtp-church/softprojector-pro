@@ -1130,6 +1130,10 @@ results.</source>
         <source>The verse text cannot be empty.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Shown: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>BiblesModel</name>
@@ -5402,6 +5406,14 @@ Bitte versuchen Sie, ein Upgrade Ihrer Version von softProjector zu machen.</tra
     </message>
     <message>
         <source>PowerPoint files can be shown only on Windows with PowerPoint installed. Save the presentation as PDF to show it here.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>PowerPoint stopped responding. Close PowerPoint and try again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Stopped.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

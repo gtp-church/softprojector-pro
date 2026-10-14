@@ -778,7 +778,7 @@ void Settings::loadSettings()
                 s = values.at(i);
                 set = s.split("=");
                 n = set.at(0).trimmed();
-                v = set.at(1).trimmed();
+                v = s.section("=", 1).trimmed(); // Empty when a line has no "="
                 if(n == "displayIsOnTop")
                     general.displayIsOnTop = (v=="true");
                 else if(n == "displayOnStartUp")
@@ -797,7 +797,7 @@ void Settings::loadSettings()
                 {
                     QStringList alinglist = v.split(",");
                     general.displayControls.alignmentV = alinglist.at(0).toInt();
-                    general.displayControls.alignmentH = alinglist.at(1).toInt();
+                    general.displayControls.alignmentH = alinglist.value(1).toInt();
                 }
                 else if (n == "deckLinkDevice")
                     general.deckLinkDevice = v;
@@ -816,7 +816,7 @@ void Settings::loadSettings()
                 s = values.at(i);
                 set = s.split("=");
                 n = set.at(0).trimmed();
-                v = set.at(1).trimmed();
+                v = s.section("=", 1).trimmed(); // Empty when a line has no "="
 
                 if(n=="spSplitter")
                     spMain.spSplitter = textToByt(v);
@@ -841,7 +841,7 @@ void Settings::loadSettings()
                 s = values.at(i);
                 set = s.split("=");
                 n = set.at(0).trimmed();
-                v = set.at(1).trimmed();
+                v = s.section("=", 1).trimmed(); // Empty when a line has no "="
                 if(n == "primary")
                     bibleSets.primaryBible = v;
                 else if(n == "secondary")
@@ -861,7 +861,7 @@ void Settings::loadSettings()
                 s = values.at(i);
                 set = s.split("=");
                 n = set.at(0).trimmed();
-                v = set.at(1).trimmed();
+                v = s.section("=", 1).trimmed(); // Empty when a line has no "="
                 if(n == "primary")
                     bibleSets2.primaryBible = v;
                 else if(n == "secondary")
@@ -889,7 +889,7 @@ void Settings::loadSettings()
                 s = values.at(i);
                 set = s.split("=");
                 n = set.at(0).trimmed();
-                v = set.at(1).trimmed();
+                v = s.section("=", 1).trimmed(); // Empty when a line has no "="
                 if(n == "expandSmall")
                     slideSets.expandSmall = (v == "true");
                 else if(n == "fitType")
@@ -967,11 +967,16 @@ void Settings::saveSettings()
     pset += "\nboundType = " + QString::number(slideSets.boundType);
     pset += "\nboundWidth = " + QString::number(slideSets.boundWidth);
 
-    sq.exec(QString("UPDATE Settings SET sets = '%1' WHERE type = 'general'").arg(gset));
-    sq.exec(QString("UPDATE Settings SET sets = '%1' WHERE type = 'spMain'").arg(spset));
-    sq.exec(QString("UPDATE Settings SET sets = '%1' WHERE type = 'bible1'").arg(b1set));
-    sq.exec(QString("UPDATE Settings SET sets = '%1' WHERE type = 'bible2'").arg(b2set));
-    sq.exec(QString("UPDATE Settings SET sets = '%1' WHERE type = 'pix'").arg(pset));
+    // Bound values: a value (a file name, a font) may have an apostrophe
+    const QStringList types = QStringList() << "general" << "spMain" << "bible1" << "bible2" << "pix";
+    const QStringList values = QStringList() << gset << spset << b1set << b2set << pset;
+    for(int i(0); i < types.count(); ++i)
+    {
+        sq.prepare("UPDATE Settings SET sets = ? WHERE type = ?");
+        sq.addBindValue(values.at(i));
+        sq.addBindValue(types.at(i));
+        sq.exec();
+    }
 
     // Shortcut keys were added in a later version, so the row may not exist yet
     QString shset;

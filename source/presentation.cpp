@@ -23,12 +23,21 @@
 #include <QCryptographicHash>
 #include <QDateTime>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QFileInfo>
 #include <QImageReader>
 #include <QProcess>
 #include <QStandardPaths>
 #include <QTextStream>
 #include <algorithm>
+#include <atomic>
+
+static std::atomic<bool> loadingStopped(false);
+
+void PresentationLoader::stopLoading()
+{
+    loadingStopped = true;
+}
 
 Presentation::Presentation()
 {
@@ -217,6 +226,11 @@ try {
         *error = powershell.errorString();
         return false;
     }
+    // PowerPoint can wait for an answer in a window nobody sees (a damaged or protected file).
+    // Give up when no slide comes for a long time.
+    const int stuckMs = 3 * 60 * 1000;
+    QElapsedTimer sinceLastSlide;
+    sinceLastSlide.start();
     while(powershell.state() != QProcess::NotRunning)
     {
         powershell.waitForReadyRead(1000);
@@ -224,7 +238,25 @@ try {
         {
             QStringList done = QString::fromLocal8Bit(powershell.readLine()).trimmed().split('/');
             if(done.count() == 2)
+            {
                 progress(done.at(0).toInt(), done.at(1).toInt());
+                sinceLastSlide.restart();
+            }
+        }
+        if(loadingStopped)
+        {
+            powershell.kill();
+            powershell.waitForFinished(5000);
+            *error = QCoreApplication::translate("PresentationLoader", "Stopped.");
+            return false;
+        }
+        if(sinceLastSlide.elapsed() > stuckMs)
+        {
+            powershell.kill();
+            powershell.waitForFinished(5000);
+            *error = QCoreApplication::translate("PresentationLoader",
+                                                 "PowerPoint stopped responding. Close PowerPoint and try again.");
+            return false;
         }
     }
     if(powershell.exitStatus() != QProcess::NormalExit || powershell.exitCode() != 0)
@@ -290,6 +322,7 @@ bool PresentationLoader::load(Presentation &presentation, const std::function<vo
             presentation.slides.append(slide);
             presentation.thumbnails.append(thumbnail);
             progress(page + 1, pageCount);
+            return !loadingStopped;
         }, error);
         if(!ok)
             return false;
@@ -317,7 +350,7 @@ bool PresentationLoader::load(Presentation &presentation, const std::function<vo
     else
     {
         // Pictures are shown from their own files; only the small images are made
-        for(int i(0); i < presentation.sources.count(); ++i)
+        for(int i(0); i < presentation.sources.count() && !loadingStopped; ++i)
         {
             QImageReader reader(presentation.sources.at(i));
             reader.setAutoTransform(true);
@@ -332,6 +365,12 @@ bool PresentationLoader::load(Presentation &presentation, const std::function<vo
         }
     }
 
+    if(loadingStopped)
+    {
+        cache.removeRecursively(); // Not complete
+        *error = QCoreApplication::translate("PresentationLoader", "Stopped.");
+        return false;
+    }
     if(presentation.slides.isEmpty())
     {
         *error = QCoreApplication::translate("PresentationLoader", "There are no slides.");

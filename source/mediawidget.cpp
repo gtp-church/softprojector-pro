@@ -22,9 +22,8 @@
 #include "mediawidget.hpp"
 #include "ui_mediawidget.h"
 
-#ifdef Q_OS_WIN
-#include <Windows.h>// this need for Sleep function
-#endif
+#include <QEventLoop>
+#include <QTimer>
 
 MediaWidget::MediaWidget(QWidget *parent) :
     QWidget(parent),
@@ -301,7 +300,10 @@ void MediaWidget::insertFiles(QStringList &files)
         QFileInfo f(file);
         mediaFileNames.append(f.fileName());
         mediaFilePaths.append(QUrl::fromLocalFile(file));
-        sq.exec(QString("INSERT INTO Media (long_Path, short_path) VALUES('%1', '%2')").arg(file).arg(f.fileName()));
+        sq.prepare("INSERT INTO Media (long_Path, short_path) VALUES(?, ?)");
+        sq.addBindValue(file);
+        sq.addBindValue(f.fileName());
+        sq.exec();
         ui->listWidgetMediaFiles->addItem(f.fileName());
     }
 }
@@ -351,7 +353,9 @@ void MediaWidget::removeFromLibrary()
     if(cm>=0)
     {
         QSqlQuery sq;
-        sq.exec("DELETE FROM Media WHERE short_path = '" +mediaFileNames.at(cm)+ "'");
+        sq.prepare("DELETE FROM Media WHERE short_path = ?");
+        sq.addBindValue(mediaFileNames.at(cm));
+        sq.exec();
         mediaFilePaths.removeAt(cm);
         mediaFileNames.removeAt(cm);
 
@@ -405,16 +409,21 @@ void MediaWidget::setMediaFromSchedule(VideoInfo &v)
 
 void MediaWidget::goLiveFromSchedule()
 {
-    while (!isReadyToPlay)
+    // Wait for the file to load. Sleeping here froze the program for good: the player reports
+    // that it is ready through events, which are not handled while sleeping, and a missing or
+    // broken file never gets ready at all.
+    if(!isReadyToPlay)
     {
-        int ms = 1000;
-#ifdef Q_OS_WIN
-        Sleep(uint(ms));
-#else
-        struct timespec ts = { ms / 1000, (ms % 1000) * 1000 * 1000 };
-        nanosleep(&ts, nullptr);
-#endif
+        QEventLoop wait;
+        QTimer::singleShot(15000, &wait, &QEventLoop::quit);
+        connect(player, &QMediaPlayer::mediaStatusChanged, &wait, [&](QMediaPlayer::MediaStatus status) {
+            if(isReadyToPlay || status == QMediaPlayer::InvalidMedia || status == QMediaPlayer::NoMedia)
+                wait.quit();
+        });
+        wait.exec(QEventLoop::ExcludeUserInputEvents);
     }
+    if(!isReadyToPlay)
+        return;
     qDebug()<<videoWidget->isVisible()<<ui->pushButtonGoLive->isEnabled();
     if(ui->pushButtonGoLive->isEnabled())
     {

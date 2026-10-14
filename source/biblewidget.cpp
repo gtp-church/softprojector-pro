@@ -148,10 +148,12 @@ void BibleWidget::editVerseText(int row)
     }
     bible.loadOperatorBible();
     currentBook.clear(); // The chapter is cached, load it again
-    on_listChapterNum_currentTextChanged(ui->listChapterNum->currentItem()->text());
+    if(ui->listChapterNum->currentItem())
+        on_listChapterNum_currentTextChanged(ui->listChapterNum->currentItem()->text());
     ui->chapter_preview_list->setCurrentRow(row);
     foreach(int r, selectedRows)
-        ui->chapter_preview_list->item(r)->setSelected(true);
+        if(r < ui->chapter_preview_list->count())
+            ui->chapter_preview_list->item(r)->setSelected(true);
 
     emit verseTextChanged();
 }
@@ -356,12 +358,13 @@ void BibleWidget::on_listChapterNum_currentTextChanged(QString currentText)
 
 QString BibleWidget::getCurrentBook()
 {
-    return ui->listBook->currentItem()->text();
+    // Nothing is selected when the book filter matches no book
+    return ui->listBook->currentItem() ? ui->listBook->currentItem()->text() : QString();
 }
 
 int BibleWidget::getCurrentChapter()
 {
-    return ui->listChapterNum->currentItem()->text().toInt();
+    return ui->listChapterNum->currentItem() ? ui->listChapterNum->currentItem()->text().toInt() : 0;
 }
 
 /*
@@ -394,15 +397,16 @@ void BibleWidget::on_chapter_preview_list_doubleClicked(QModelIndex index)
 
 void BibleWidget::sendToProjector(bool add_to_history)
 {
-    bible.currentIdList = bible.previewIdList;
-    bible.currentVerseNumbers = bible.previewVerseNumbers;
-    bible.currentBook = bible.previewBook;
-    bible.currentChapter = bible.previewChapter;
     QItemSelection selectedItems = ui->chapter_preview_list->selectionModel()->selection();
-    if(selectedItems.count())
+    if(selectedItems.count() && ui->listBook->currentItem() && ui->listChapterNum->currentItem())
     {
+        // Only now: without a selection the passage on the screens stays as it is
+        bible.currentIdList = bible.previewIdList;
+        bible.currentVerseNumbers = bible.previewVerseNumbers;
+        bible.currentBook = bible.previewBook;
+        bible.currentChapter = bible.previewChapter;
         // Get the caption string to show above the show list (right-most list)
-        QString cap = QString("%1 %2").arg(ui->listBook->currentItem()->text()).arg(ui->listChapterNum->currentItem()->text());
+        QString cap = QString("%1 %2").arg(getCurrentBook()).arg(getCurrentChapter());
         emit goLive(bible.verseList, cap,selectedItems);
         if (add_to_history)
             addToHistory();
@@ -481,7 +485,7 @@ void BibleWidget::on_lineEditBook_textChanged(QString text)
 
                 if( ! book_words.at(0).startsWith(num_str) )
                     continue;
-                if( !book_words.at(1).startsWith(name_str, Qt::CaseInsensitive) )
+                if( !book_words.value(1).startsWith(name_str, Qt::CaseInsensitive) )
                     continue;
 
                 filtered_books.append(book);
@@ -578,15 +582,20 @@ void BibleWidget::on_search_button_clicked()
 
     highlight->highlighter->setHighlightText(rxh.pattern()); // set highlighting rule
 
+    // "Current book" and "current chapter" need a book and a chapter; without them search everything
+    if((range == 1 && !ui->listBook->currentItem())
+            || (range == 2 && (!ui->listBook->currentItem() || !ui->listChapterNum->currentItem())))
+        range = 0;
+
     if(range == 0) // Search entire Bible
         search_results = bible.searchBible((type == 4),rx);
     else if(range == 1) // Search current book only
         search_results = bible.searchBible((type == 4),rx,
-                                           bible.books.at(bible.getCurrentBookRow(ui->listBook->currentItem()->text())).bookId.toInt());
+                                           bible.books.at(bible.getCurrentBookRow(getCurrentBook())).bookId.toInt());
     else if (range == 2) // Search current chapter only
         search_results = bible.searchBible((type == 4),rx,
-                                           bible.books.at(bible.getCurrentBookRow(ui->listBook->currentItem()->text())).bookId.toInt(),
-                                           ui->listChapterNum->currentItem()->text().toInt());
+                                           bible.books.at(bible.getCurrentBookRow(getCurrentBook())).bookId.toInt(),
+                                           getCurrentChapter());
 
     ui->search_results_list->clear();
 
@@ -605,10 +614,17 @@ void BibleWidget::on_search_button_clicked()
         }
         QStringList verse_list;
         int count = search_results.count();
+        // A single letter or a very common word finds most of the Bible. Listing tens of thousands
+        // of verses froze the program for many seconds, so only the first ones are listed.
+        const int maxShown = 1000;
+        int shown = qMin(count, maxShown);
 
-        ui->result_count_label->setText(tr("Total\nresutls:\n%1").arg(count));
+        QString countText = tr("Total\nresutls:\n%1").arg(count);
+        if(shown < count)
+            countText += "\n" + tr("Shown: %1").arg(shown);
+        ui->result_count_label->setText(countText);
 
-        for(int i(0);i<count;i++)
+        for(int i(0);i<shown;i++)
             verse_list.append(search_results.at(i).verse_text);
         ui->search_results_list->addItems(verse_list);
     }
@@ -729,11 +745,11 @@ BibleHistory BibleWidget::getCurrentVerse()
     BibleHistory b;
     QString selected_ids;
 
-    QString book = ui->listBook->currentItem()->text();
+    QString book = getCurrentBook();
     QString chapter = ui->chapter_ef->text();
 
     int first_selected(-1),last_selected(-1);
-    for(int i(0);i<ui->chapter_preview_list->count();++i)
+    for(int i(0);i<ui->chapter_preview_list->count() && i<bible.previewIdList.count();++i)
     {
         if(ui->chapter_preview_list->item(i)->isSelected())
         {
@@ -744,6 +760,8 @@ BibleHistory BibleWidget::getCurrentVerse()
         }
     }
     selected_ids.chop(1);
+    if(first_selected == -1)
+        return b; // No verse selected
 
     QString verse_text = ui->chapter_preview_list->item(first_selected)->text().trimmed();
     b.verseIds = selected_ids;
@@ -756,10 +774,9 @@ BibleHistory BibleWidget::getCurrentVerse()
     else
     {   // Create multi verse caption for display
         int f(first_selected+1), l(last_selected+1),j(0);
-        QString v=verse_text,p=".";
-        while(v.at(j)!=p.at(0))
-            ++j;
-        v = v.remove(0,j);
+        QString v=verse_text;
+        j = v.indexOf('.');
+        v = j >= 0 ? v.remove(0,j) : QString(" ");
 
         b.caption = book + " " + chapter + ":" + QString::number(f) + "-" + QString::number(l);
         b.captionLong = book + " " + chapter + ":" + QString::number(f) + "-" + QString::number(l) + v + "...";

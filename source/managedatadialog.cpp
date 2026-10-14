@@ -297,6 +297,8 @@ void ManageDataDialog::importSongbook(QString path)
                     break;
                 line = QString::fromUtf8(file.readLine());
                 split = line.split("#$#");
+                if(split.count() < 7)
+                    continue; // Not a song (an empty or damaged line)
 
                 num = split[0];
 
@@ -315,7 +317,7 @@ void ManageDataDialog::importSongbook(QString path)
                 if (split.count() > 7)
                 {
                     sq.addBindValue(split[7]);//font
-                    sq.addBindValue(split[9]);//background
+                    sq.addBindValue(split.value(9));//background
                     if(split.count()>10)
                     {
                         QString note = split[10];
@@ -361,7 +363,7 @@ void ManageDataDialog::importSongbook(QString path)
                                    "background_name, count, date)"
                                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
-                        while(xml.tokenString() != "EndElement" && xml.name() != "spSongBook")
+                        while(!xml.atEnd() && xml.tokenString() != "EndElement" && xml.name() != "spSongBook")
                         {
                             xml.readNext();
                             if(xml.StartElement && xml.name() == "SongBook")
@@ -369,7 +371,7 @@ void ManageDataDialog::importSongbook(QString path)
                                 QString xtitle,xinfo;
                                 // Read songbook data
                                 xml.readNext();
-                                while(xml.tokenString() != "EndElement")
+                                while(!xml.atEnd() && xml.tokenString() != "EndElement")
                                 {
                                     xml.readNext();
                                     if(xml.StartElement && xml.name() == "title")
@@ -406,7 +408,7 @@ void ManageDataDialog::importSongbook(QString path)
                                 // Read song data
                                 xnum = xml.attributes().value("number").toString();
                                 xml.readNext();
-                                while(xml.tokenString() != "EndElement")
+                                while(!xml.atEnd() && xml.tokenString() != "EndElement")
                                 {
                                     xml.readNext();
                                     if(xml.StartElement && xml.name() == "title")
@@ -884,7 +886,7 @@ void ManageDataDialog::importBible(QString path)
         else if (line.startsWith("##spData")) //New bible format version
         {
             split = line.split("\t");
-            version = split.at(1);
+            version = split.value(1);
             if (version.trimmed() != "1") // Version 1
             {
                 QString errorm = tr("The Bible format you are importing is of an new version.\n"
@@ -912,13 +914,13 @@ void ManageDataDialog::importBible(QString path)
 
         line = QString::fromUtf8(file.readLine()); // read title
         split = line.split("\t");
-        title = split.at(1);
+        title = split.value(1);
         line = QString::fromUtf8(file.readLine()); // read abbreviation
         split = line.split("\t");
-        abbr = split.at(1);
+        abbr = split.value(1);
         line = QString::fromUtf8(file.readLine()); // read info
         split = line.split("\t");
-        info = split.at(1);
+        info = split.value(1);
         // Convert bible information from single line to multiple line
         QStringList info_list = info.split("@%");
         info.clear();
@@ -927,7 +929,7 @@ void ManageDataDialog::importBible(QString path)
 
         line = QString::fromUtf8(file.readLine()); // read right to left
         split = line.split("\t");
-        rtol = split.at(1);
+        rtol = split.value(1);
 
         QProgressDialog progress(tr("Importing..."), tr("Cancel"), 0, 31200, this);
         if(importType == "down")
@@ -964,13 +966,14 @@ void ManageDataDialog::importBible(QString path)
         line = QString::fromUtf8(file.readLine());
         QSqlDatabase::database().transaction();
         sq.prepare("INSERT INTO BibleBooks (bible_id, id, book_name, chapter_count) VALUES (?,?,?,?)");
-        while (!line.startsWith("---"))
+        // An empty line comes only at the end of the file: a damaged file without the "---" line
+        while (!line.startsWith("---") && !line.isEmpty())
         {
             QString bk_id, bk_name, ch_count;
             split = line.split("\t");
             bk_id = split.at(0);
-            bk_name = split.at(1);
-            ch_count = split.at(2);
+            bk_name = split.value(1);
+            ch_count = split.value(2);
 
             sq.addBindValue(id);
             sq.addBindValue(bk_id.trimmed());
@@ -999,6 +1002,8 @@ void ManageDataDialog::importBible(QString path)
 
             line = QString::fromUtf8(file.readLine());
             split = line.split("\t");
+            if(split.count() < 5)
+                continue; // Not a verse (an empty line at the end)
             sq.addBindValue(split.at(0));
             sq.addBindValue(id);
             sq.addBindValue(split.at(1));
@@ -2100,13 +2105,13 @@ QStringList ManageDataDialog::getModList(QString filepath)
             if(xml.StartElement && xml.name() == "Modules")
             {
                 xml.readNext();
-                while(xml.tokenString() != "EndElement" && xml.name() != "Modules")
+                while(!xml.atEnd() && xml.tokenString() != "EndElement" && xml.name() != "Modules")
                 {
                     xml.readNext();
                     if(xml.StartElement && xml.name() == "Module")
                     {
                         xml.readNext();
-                        while(xml.tokenString() != "EndElement")
+                        while(!xml.atEnd() && xml.tokenString() != "EndElement")
                         {
                             //                            qDebug()<<"loop2";
                             xml.readNext();

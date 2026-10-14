@@ -33,7 +33,9 @@
 #include <QPainter>
 #include <QScrollBar>
 #include <QSettings>
+#include <QPointer>
 #include <QSplitter>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <QWheelEvent>
 #include <QtConcurrent>
@@ -168,6 +170,19 @@ private:
     QPixmap picture;
 };
 
+void PresentationWidget::relayoutSlidesLater(QListView *list)
+{
+    // Not right away: the layout itself can resize the list (scroll bar), which would call it again
+    // and again. Several resizes in a row lead to one layout.
+    if(list->property("relayoutPending").toBool())
+        return;
+    list->setProperty("relayoutPending", true);
+    QTimer::singleShot(0, list, [list]() {
+        list->setProperty("relayoutPending", false);
+        list->doItemsLayout();
+    });
+}
+
 void PresentationWidget::scrollSlides(QListView *list, QWheelEvent *wheel)
 {
     QScrollBar *bar = list->verticalScrollBar();
@@ -225,6 +240,8 @@ PresentationWidget::PresentationWidget(QWidget *parent) :
     listSlides->setSpacing(4);
     listSlides->setUniformItemSizes(true);
     listSlides->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    // The slide width follows the list width; a scroll bar that comes and goes would change it every time
+    listSlides->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     slideDelegate = new SlideDelegate(listSlides);
     listSlides->setItemDelegate(slideDelegate);
     listSlides->installEventFilter(this);
@@ -288,10 +305,17 @@ void PresentationWidget::setSlideSize(int width)
     QSettings("SoftProjector", "SoftProjector").setValue("presentationSlideSize", width);
 }
 
+PresentationWidget::~PresentationWidget()
+{
+    // Do not leave slides being made when the program closes
+    PresentationLoader::stopLoading();
+    loader.waitForFinished();
+}
+
 bool PresentationWidget::eventFilter(QObject *object, QEvent *event)
 {
     if(object == listSlides->viewport() && event->type() == QEvent::Resize)
-        listSlides->doItemsLayout();
+        relayoutSlidesLater(listSlides);
     // Ctrl + mouse wheel changes the size of the slides; Space shows the selected slide big
     if(object == listSlides->viewport() && event->type() == QEvent::Wheel)
     {
@@ -415,13 +439,17 @@ void PresentationWidget::loadPresentation(int row)
     labelStatus->setText(tr("Preparing slides..."));
     updateButtons();
 
-    QLabel *status = labelStatus;
+    // The label may be gone by the time a progress message arrives (the program is closing)
+    QPointer<QLabel> status = labelStatus;
     loader.setFuture(QtConcurrent::run([p, status]() {
         LoadResult result;
         result.presentation = p;
         result.ok = PresentationLoader::load(result.presentation, [status](int done, int total) {
-            QMetaObject::invokeMethod(status, "setText", Qt::QueuedConnection,
-                                      Q_ARG(QString, PresentationWidget::tr("Preparing slides: %1 of %2").arg(done).arg(total)));
+            QString text = PresentationWidget::tr("Preparing slides: %1 of %2").arg(done).arg(total);
+            QMetaObject::invokeMethod(qApp, [status, text]() {
+                if(status)
+                    status->setText(text);
+            }, Qt::QueuedConnection);
         }, &result.error);
         return result;
     }));
