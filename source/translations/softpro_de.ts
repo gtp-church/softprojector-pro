@@ -4070,6 +4070,30 @@ Bitte versuchen Sie, ein Upgrade Ihrer Version von softProjector zu machen.</tra
         <source>Exit</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Presentations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Now</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Next</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Back to the presentation, same slide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Presentations tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Back to Presentation</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SoftProjectorClass</name>
@@ -5332,6 +5356,107 @@ Bitte versuchen Sie, ein Upgrade Ihrer Version von softProjector zu machen.</tra
     </message>
     <message>
         <source>Clear</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>PdfRenderer</name>
+    <message>
+        <source>The PDF library (pdfium) was not found next to the program.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The PDF file cannot be opened (error %1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>PresentationLoader</name>
+    <message>
+        <source>Presentations and pictures</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>PowerPoint could not open the presentation.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>There are no slides.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>PowerPoint files can be shown only on Windows with PowerPoint installed. Save the presentation as PDF to show it here.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>PresentationWidget</name>
+    <message>
+        <source>Open File...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open a PDF, a PowerPoint presentation or pictures from any folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add to Library</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Keep this presentation in the library: the Presentations folder next to the program</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Go Live (F5)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose a presentation on the left or open a file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Opened from %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Preparing slides...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Preparing slides: %1 of %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Slides: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete from Library</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open Presentation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not copy %1 to the library.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Name of the presentation:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete &quot;%1&quot; from the library? It will be moved to the Recycle Bin.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not move %1 to the Recycle Bin.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -2674,6 +2674,30 @@ Please try again with different file name.</source>
         <source>Exit</source>
         <translation>Выход</translation>
     </message>
+    <message>
+        <source>Presentations</source>
+        <translation>Презентации</translation>
+    </message>
+    <message>
+        <source>Now</source>
+        <translation>Сейчас</translation>
+    </message>
+    <message>
+        <source>Next</source>
+        <translation>Далее</translation>
+    </message>
+    <message>
+        <source>Back to the presentation, same slide</source>
+        <translation>Вернуться к презентации на тот же слайд</translation>
+    </message>
+    <message>
+        <source>Presentations tab</source>
+        <translation>Вкладка «Презентации»</translation>
+    </message>
+    <message>
+        <source>Back to Presentation</source>
+        <translation>Вернуться к презентации</translation>
+    </message>
 </context>
 <context>
     <name>SoftProjectorClass</name>
@@ -3481,6 +3505,107 @@ Please try again with different file name.</source>
     <message>
         <source>Clear</source>
         <translation>Очистить</translation>
+    </message>
+</context>
+<context>
+    <name>PdfRenderer</name>
+    <message>
+        <source>The PDF library (pdfium) was not found next to the program.</source>
+        <translation>Рядом с программой не найдена библиотека PDF (pdfium).</translation>
+    </message>
+    <message>
+        <source>The PDF file cannot be opened (error %1).</source>
+        <translation>Не удалось открыть PDF-файл (ошибка %1).</translation>
+    </message>
+</context>
+<context>
+    <name>PresentationLoader</name>
+    <message>
+        <source>Presentations and pictures</source>
+        <translation>Презентации и картинки</translation>
+    </message>
+    <message>
+        <source>PowerPoint could not open the presentation.</source>
+        <translation>PowerPoint не смог открыть презентацию.</translation>
+    </message>
+    <message>
+        <source>There are no slides.</source>
+        <translation>В презентации нет слайдов.</translation>
+    </message>
+    <message>
+        <source>PowerPoint files can be shown only on Windows with PowerPoint installed. Save the presentation as PDF to show it here.</source>
+        <translation>Файлы PowerPoint показываются только на Windows с установленным PowerPoint. Сохраните презентацию в PDF, чтобы показать её здесь.</translation>
+    </message>
+</context>
+<context>
+    <name>PresentationWidget</name>
+    <message>
+        <source>Open File...</source>
+        <translation>Открыть файл...</translation>
+    </message>
+    <message>
+        <source>Open a PDF, a PowerPoint presentation or pictures from any folder</source>
+        <translation>Открыть PDF, презентацию PowerPoint или картинки из любой папки</translation>
+    </message>
+    <message>
+        <source>Add to Library</source>
+        <translation>В библиотеку</translation>
+    </message>
+    <message>
+        <source>Keep this presentation in the library: the Presentations folder next to the program</source>
+        <translation>Сохранить презентацию в библиотеке: в папке «Презентации» рядом с программой</translation>
+    </message>
+    <message>
+        <source>Go Live (F5)</source>
+        <translation>На экран (F5)</translation>
+    </message>
+    <message>
+        <source>Choose a presentation on the left or open a file.</source>
+        <translation>Выберите презентацию слева или откройте файл.</translation>
+    </message>
+    <message>
+        <source>Opened from %1</source>
+        <translation>Открыта из папки %1</translation>
+    </message>
+    <message>
+        <source>Preparing slides...</source>
+        <translation>Подготовка слайдов...</translation>
+    </message>
+    <message>
+        <source>Preparing slides: %1 of %2</source>
+        <translation>Подготовка слайдов: %1 из %2</translation>
+    </message>
+    <message>
+        <source>Slides: %1</source>
+        <translation>Слайдов: %1</translation>
+    </message>
+    <message>
+        <source>Delete from Library</source>
+        <translation>Удалить из библиотеки</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Закрыть</translation>
+    </message>
+    <message>
+        <source>Open Presentation</source>
+        <translation>Открыть презентацию</translation>
+    </message>
+    <message>
+        <source>Could not copy %1 to the library.</source>
+        <translation>Не удалось скопировать %1 в библиотеку.</translation>
+    </message>
+    <message>
+        <source>Name of the presentation:</source>
+        <translation>Название презентации:</translation>
+    </message>
+    <message>
+        <source>Delete &quot;%1&quot; from the library? It will be moved to the Recycle Bin.</source>
+        <translation>Удалить «%1» из библиотеки? Файл будет перемещён в корзину.</translation>
+    </message>
+    <message>
+        <source>Could not move %1 to the Recycle Bin.</source>
+        <translation>Не удалось переместить %1 в корзину.</translation>
     </message>
 </context>
 </TS>

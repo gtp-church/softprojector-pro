@@ -41,6 +41,7 @@
 #include "slideshoweditor.hpp"
 #include "schedule.hpp"
 #include "shortcuts.hpp"
+#include "presentationwidget.hpp"
 
 class QActionGroup;
 
@@ -55,7 +56,8 @@ enum PresentationType
     SONG,
     ANNOUCEMENT,
     PICTURE,
-    VIDEO
+    VIDEO,
+    PRESENTATION
 };
 
 class SoftProjector : public QMainWindow
@@ -74,6 +76,7 @@ public:
     ProjectorDisplayScreen *pds1;
     ProjectorDisplayScreen *pds2;
     PictureWidget *pictureWidget;
+    PresentationWidget *presentationWidget;
     MediaWidget *mediaPlayer;
     MediaControl *mediaControls;
 
@@ -130,6 +133,16 @@ private:
         QString text; // Without the key
     };
     QList<KeyHint> keyHints;
+
+    // Presentation on the screens, and the last one shown to go back to after a Bible verse
+    Presentation currentPresentation;
+    Presentation lastPresentation;
+    int lastPresentationSlide;
+    QWidget *slidePreview;
+    QLabel *labelSlideNowTitle, *labelSlideNextTitle, *labelSlideNow, *labelSlideNext;
+    QAction *returnToPresentationAction;
+    void retranslateSlidePreview();
+    void updateSlidePreview();
     void setupShortcuts();
     void addShortcut(const QString &id, const char *group, const char *name, QAction *action,
                      const QList<QKeySequence> &defaultKeys);
@@ -174,6 +187,7 @@ private slots:
     void showSong(int currentRow);
     void showAnnounce(int currentRow);
     void showPicture(int currentRow);
+    void showPresentationSlide(int currentRow);
     void showVideo();
 
     void retranslateUis();
@@ -210,6 +224,8 @@ private slots:
     void applyShortcuts(ShortcutKeys keys);
     void reloadBibleShowList();
     void setPictureList(QList<SlideShowItem> &image_list, int row, QString name);
+    void setPresentation(Presentation presentation, int row);
+    void returnToPresentation();
     void setVideo(VideoInfo &video);
     void playVideo();
     void pauseVideo();
@@ -274,6 +290,7 @@ private slots:
 protected:
     void closeEvent(QCloseEvent *event);
     void keyPressEvent(QKeyEvent *event);
+    bool eventFilter(QObject *object, QEvent *event);
 };
 
 #endif // SOFTPROJECTOR_HPP

@@ -18,6 +18,8 @@
 ***************************************************************************/
 
 #include <QDesktopWidget>
+#include <QGridLayout>
+#include <QImageReader>
 #include <QRegularExpression>
 #include "softprojector.hpp"
 #include "ui_softprojector.h"
@@ -27,6 +29,10 @@
 SoftProjector::SoftProjector(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::SoftProjectorClass)
 {
+    // Created further down, but the interface is translated before that
+    slidePreview = 0;
+    returnToPresentationAction = 0;
+
     // Load settings
     mySettings.loadSettings();
     theme.setThemeId(mySettings.general.currentThemeId);
@@ -54,6 +60,7 @@ SoftProjector::SoftProjector(QWidget *parent)
     settingsDialog = new SettingsDialog(this);
     helpDialog = new HelpDialog();
     pictureWidget = new PictureWidget;
+    presentationWidget = new PresentationWidget;
     mediaPlayer = new MediaWidget;
     mediaControls = new MediaControl(this);
 
@@ -82,6 +89,7 @@ SoftProjector::SoftProjector(QWidget *parent)
     ui->projectTab->addTab(pictureWidget,QIcon(":/icons/icons/photo.png"),tr("Pictures"));
     ui->projectTab->addTab(mediaPlayer,QIcon(":/icons/icons/video.png"),tr("Media"));
     ui->projectTab->addTab(announceWidget,QIcon(":/icons/icons/announce.png"), tr("Announcements (F8)"));
+    ui->projectTab->addTab(presentationWidget,QIcon(":/icons/icons/screen.png"), tr("Presentations"));
     ui->projectTab->setCurrentIndex(0);
 
 
@@ -103,6 +111,7 @@ SoftProjector::SoftProjector(QWidget *parent)
     connect(songWidget, SIGNAL(setArrowCursor()), this, SLOT(setArrowCursor()));
     connect(songWidget, SIGNAL(setWaitCursor()), this, SLOT(setWaitCursor()));
     connect(announceWidget,SIGNAL(sendAnnounce(Announcement,int)), this, SLOT(setAnnounceText(Announcement,int)));
+    connect(presentationWidget, &PresentationWidget::sendPresentation, this, &SoftProjector::setPresentation);
     connect(pictureWidget, SIGNAL(sendSlideShow(QList<SlideShowItem>&,int,QString)),
             this, SLOT(setPictureList(QList<SlideShowItem>&,int,QString)));
     connect(pictureWidget, SIGNAL(sendToSchedule(SlideShow&)),this,SLOT(addToShcedule(SlideShow&)));
@@ -168,6 +177,30 @@ SoftProjector::SoftProjector(QWidget *parent)
 
     // Set up video controls
     ui->verticalLayoutDisplayControls->insertWidget(1,mediaControls);
+
+    // Current and next slide of a presentation, above the slide list
+    lastPresentationSlide = 0;
+    slidePreview = new QWidget;
+    QGridLayout *previewLayout = new QGridLayout(slidePreview);
+    previewLayout->setContentsMargins(0, 0, 0, 0);
+    labelSlideNowTitle = new QLabel;
+    labelSlideNextTitle = new QLabel;
+    labelSlideNow = new QLabel;
+    labelSlideNext = new QLabel;
+    foreach(QLabel *label, QList<QLabel*>() << labelSlideNow << labelSlideNext)
+    {
+        label->setAlignment(Qt::AlignCenter);
+        label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        label->setStyleSheet("background-color: black;");
+    }
+    previewLayout->addWidget(labelSlideNowTitle, 0, 0);
+    previewLayout->addWidget(labelSlideNextTitle, 0, 1);
+    previewLayout->addWidget(labelSlideNow, 1, 0);
+    previewLayout->addWidget(labelSlideNext, 1, 1);
+    ui->verticalLayoutDisplayControls->insertWidget(1, slidePreview);
+    slidePreview->setVisible(false);
+    ui->listShow->installEventFilter(this); // Previews follow the width of the panel
+    retranslateSlidePreview();
     mediaControls->setVisible(false);
     mediaControls->setVolume(100);
     connect(pds1,SIGNAL(videoPositionChanged(qint64)),
@@ -462,6 +495,7 @@ void SoftProjector::setAnnounceText(Announcement announce, int row)
     currentAnnounce = announce;
     pType = ANNOUCEMENT;
     ui->widgetMultiVerse->setVisible(false);
+    slidePreview->setVisible(false);
     ui->rbMultiVerse->setChecked(false);
     mediaControls->setVisible(false);
     showing = true;
@@ -488,6 +522,7 @@ void SoftProjector::setSongList(Song song, int row)
     // Display the specified song text in the right-most column of softProjector
     pType = SONG;
     ui->widgetMultiVerse->setVisible(false);
+    slidePreview->setVisible(false);
     ui->rbMultiVerse->setChecked(false);
     mediaControls->setVisible(false);
     showing = true;
@@ -558,6 +593,7 @@ void SoftProjector::setChapterList(QStringList chapter_list, QString caption, QI
     // Called to show a bible verse from a chapter in the preview list
     pType = BIBLE;
     ui->widgetMultiVerse->setVisible(true);
+    slidePreview->setVisible(false);
     mediaControls->setVisible(false);
     showing = true;
     new_list = true;
@@ -663,6 +699,7 @@ void SoftProjector::setPictureList(QList<SlideShowItem> &image_list,int row,QStr
     pType = PICTURE;
     showing = true;
     ui->widgetMultiVerse->setVisible(false);
+    slidePreview->setVisible(false);
     ui->rbMultiVerse->setChecked(false);
     mediaControls->setVisible(false);
     new_list = true;
@@ -688,6 +725,45 @@ void SoftProjector::setPictureList(QList<SlideShowItem> &image_list,int row,QStr
     updateScreen();
 }
 
+void SoftProjector::setPresentation(Presentation presentation, int row)
+{
+    // Called to show the slides of a presentation
+    pType = PRESENTATION;
+    showing = true;
+    currentPresentation = presentation;
+    lastPresentation = presentation;
+    ui->widgetMultiVerse->setVisible(false);
+    ui->rbMultiVerse->setChecked(false);
+    mediaControls->setVisible(false);
+    slidePreview->setVisible(true);
+    new_list = true;
+    ui->labelIcon->setPixmap(QPixmap(":/icons/icons/screen.png").scaled(16,16,Qt::IgnoreAspectRatio,Qt::SmoothTransformation));
+    ui->labelShow->setText(presentation.name);
+    ui->labelSongNotes->setVisible(false);
+    ui->listShow->clear();
+    ui->listShow->setSpacing(1);
+    ui->listShow->setIconSize(QSize(160,90));
+    for(int i(0); i < presentation.thumbnails.count(); ++i)
+        ui->listShow->addItem(new QListWidgetItem(QIcon(presentation.thumbnails.at(i)), QString::number(i + 1)));
+    ui->listShow->setCurrentRow(qBound(0, row, presentation.slides.count() - 1));
+    ui->listShow->setFocus();
+    new_list = false;
+    updateScreen();
+}
+
+void SoftProjector::returnToPresentation()
+{
+    // Back to the slide that was on the screens before something else was shown
+    if(!lastPresentation.slides.isEmpty())
+        setPresentation(lastPresentation, lastPresentationSlide);
+}
+
+void SoftProjector::retranslateSlidePreview()
+{
+    labelSlideNowTitle->setText(tr("Now"));
+    labelSlideNextTitle->setText(tr("Next"));
+}
+
 void SoftProjector::setVideo(VideoInfo &video)
 {
     // Called when showing video
@@ -695,6 +771,7 @@ void SoftProjector::setVideo(VideoInfo &video)
     currentVideo = video;
     showing = true;
     ui->widgetMultiVerse->setVisible(false);
+    slidePreview->setVisible(false);
     ui->rbMultiVerse->setChecked(false);
     if(!mediaControls->isVisible())
     {
@@ -773,6 +850,8 @@ void SoftProjector::updateScreen()
     // Display the specified row of the show (rightmost) table to
     // the display
     int currentRow = ui->listShow->currentRow();
+    if(returnToPresentationAction)
+        returnToPresentationAction->setEnabled(!lastPresentation.slides.isEmpty() && pType != PRESENTATION);
 
     if(!showing)
     {
@@ -841,6 +920,9 @@ void SoftProjector::updateScreen()
             break;
         case PICTURE:
             showPicture(currentRow);
+            break;
+        case PRESENTATION:
+            showPresentationSlide(currentRow);
             break;
         case VIDEO:
             showVideo();
@@ -931,6 +1013,54 @@ void SoftProjector::showPicture(int currentRow)
     {
         pds2->renderSlideShow(pictureShowList.at(currentRow).image,mySettings.slideSets);
     }
+}
+
+void SoftProjector::showPresentationSlide(int currentRow)
+{
+    if(currentRow < 0 || currentRow >= currentPresentation.slides.count())
+        return;
+
+    // Slides fill the screen keeping their shape; photos are turned the way they were taken
+    QImageReader reader(currentPresentation.slides.at(currentRow));
+    reader.setAutoTransform(true);
+    QPixmap slide = QPixmap::fromImage(reader.read());
+    SlideShowSettings slideSettings = mySettings.slideSets;
+    slideSettings.fitType = 0;
+    slideSettings.expandSmall = true;
+    pds1->renderSlideShow(slide, slideSettings);
+    if(hasDisplayScreen2)
+        pds2->renderSlideShow(slide, slideSettings);
+
+    lastPresentationSlide = currentRow;
+    updateSlidePreview();
+    presentationWidget->setCurrentSlide(currentPresentation, currentRow);
+}
+
+void SoftProjector::updateSlidePreview()
+{
+    // The operator sees the slide on the screens and the next one. Sized from the slide list,
+    // which is laid out already when the preview is first shown.
+    int row = lastPresentationSlide;
+    if(pType != PRESENTATION || row < 0 || row >= currentPresentation.thumbnails.count())
+        return;
+    int width = qMax(80, (ui->listShow->width() - 6) / 2);
+    int height = width * 9 / 16;
+    foreach(QLabel *label, QList<QLabel*>() << labelSlideNow << labelSlideNext)
+        label->setFixedHeight(height);
+    labelSlideNow->setPixmap(QPixmap(currentPresentation.thumbnails.at(row))
+                             .scaled(width, height, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    if(row + 1 < currentPresentation.thumbnails.count())
+        labelSlideNext->setPixmap(QPixmap(currentPresentation.thumbnails.at(row + 1))
+                                  .scaled(width, height, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    else
+        labelSlideNext->clear();
+}
+
+bool SoftProjector::eventFilter(QObject *object, QEvent *event)
+{
+    if(object == ui->listShow && event->type() == QEvent::Resize)
+        updateSlidePreview();
+    return QMainWindow::eventFilter(object, event);
 }
 
 void SoftProjector::showVideo()
@@ -1042,6 +1172,14 @@ void SoftProjector::setupShortcuts()
     connect(action, &QAction::triggered, this, [this]{ showSlide(0); });
     action = addShortcutAction("last", screen, QT_TRANSLATE_NOOP("SoftProjector", "Last verse, stanza or slide"), Keys());
     connect(action, &QAction::triggered, this, [this]{ showSlide(ui->listShow->count() - 1); });
+    // Also on the toolbar: after showing a Bible verse during a presentation
+    returnToPresentationAction = addShortcutAction("returnToPresentation", screen,
+                               QT_TRANSLATE_NOOP("SoftProjector", "Back to the presentation, same slide"),
+                               Keys() << QKeySequence(Qt::Key_F12));
+    returnToPresentationAction->setIcon(QIcon(":/icons/icons/screen.png"));
+    returnToPresentationAction->setEnabled(false);
+    ui->toolBarShow->addAction(returnToPresentationAction);
+    connect(returnToPresentationAction, &QAction::triggered, this, [this]{ returnToPresentation(); });
 
     const char *tabs = QT_TRANSLATE_NOOP("SoftProjector", "Tabs");
     action = addShortcutAction("tabBible", tabs, QT_TRANSLATE_NOOP("SoftProjector", "Bible tab, find a book"),
@@ -1072,6 +1210,8 @@ void SoftProjector::setupShortcuts()
     action = addShortcutAction("tabAnnouncements", tabs, QT_TRANSLATE_NOOP("SoftProjector", "Announcements tab"),
                                Keys() << QKeySequence(Qt::Key_F8));
     connect(action, &QAction::triggered, this, [this]{ ui->projectTab->setCurrentWidget(announceWidget); });
+    action = addShortcutAction("tabPresentations", tabs, QT_TRANSLATE_NOOP("SoftProjector", "Presentations tab"), Keys());
+    connect(action, &QAction::triggered, this, [this]{ ui->projectTab->setCurrentWidget(presentationWidget); });
 
     const char *scheduleGroup = QT_TRANSLATE_NOOP("SoftProjector", "Service schedule");
     addShortcut("scheduleAdd", scheduleGroup, QT_TRANSLATE_NOOP("SoftProjector", "Add to the schedule"),
@@ -1227,6 +1367,9 @@ void SoftProjector::applyShortcutsToUi()
     ui->projectTab->setTabText(2, addKeyHint(tr("Pictures"), shortcutKeys("tabPictures")));
     ui->projectTab->setTabText(3, addKeyHint(tr("Media"), shortcutKeys("tabMedia")));
     ui->projectTab->setTabText(4, addKeyHint(removeKeyHint(tr("Announcements (F8)")), shortcutKeys("tabAnnouncements")));
+    ui->projectTab->setTabText(5, addKeyHint(tr("Presentations"), shortcutKeys("tabPresentations")));
+    if(returnToPresentationAction)
+        returnToPresentationAction->setText(tr("Back to Presentation"));
 }
 
 void SoftProjector::applyShortcuts(ShortcutKeys keys)
@@ -1255,7 +1398,8 @@ QList<QPushButton*> SoftProjector::goLiveButtons()
             << songWidget->findChild<QPushButton*>("btnLive")
             << pictureWidget->findChild<QPushButton*>("pushButtonGoLive")
             << mediaPlayer->findChild<QPushButton*>("pushButtonGoLive")
-            << announceWidget->findChild<QPushButton*>("pushButtonLive");
+            << announceWidget->findChild<QPushButton*>("pushButtonLive")
+            << presentationWidget->findChild<QPushButton*>("pushButtonGoLive");
 }
 
 void SoftProjector::goLiveFromCurrentTab()
@@ -1890,6 +2034,8 @@ void SoftProjector::retranslateUis()
     // Retranslating restores the keys and key hints from the .ui files; put the chosen ones back
     captureKeyHints();
     applyShortcutsToUi();
+    if(slidePreview)
+        retranslateSlidePreview();
     updateEditActions();
     songWidget->retranslateUis();
     editWidget->retranslateUis();

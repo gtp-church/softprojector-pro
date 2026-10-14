@@ -19,6 +19,7 @@
 
 
 QT += core \
+    concurrent \
     gui \
     widgets \
     network \
@@ -47,6 +48,9 @@ OUT_PWD = $${RES_DIR}/bin
 
 SOURCES += main.cpp \
     shortcutsettingwidget.cpp \
+    pdfrenderer.cpp \
+    presentation.cpp \
+    presentationwidget.cpp \
     softprojector.cpp \
     songwidget.cpp \
     biblewidget.cpp \
@@ -93,6 +97,9 @@ SOURCES += main.cpp \
 HEADERS += softprojector.hpp \
     shortcuts.hpp \
     shortcutsettingwidget.hpp \
+    pdfrenderer.hpp \
+    presentation.hpp \
+    presentationwidget.hpp \
     songwidget.hpp \
     biblewidget.hpp \
     editwidget.hpp \

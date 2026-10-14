@@ -30,6 +30,14 @@ cp translations/flag_*.png "$BIN_DIR/translations/"
 rm -rf "$BIN_DIR/DataFixes"
 cp -R "$REPO/DataFixes" "$BIN_DIR/"
 
+# PDF presentations need the PDFium library (https://github.com/bblanchon/pdfium-binaries, pdfium-mac-x64.tgz)
+PDFIUM="${PDFIUM:-$HOME/Qt/pdfium-8076-mac-x64/lib/libpdfium.dylib}"
+if [ -f "$PDFIUM" ]; then
+  cp "$PDFIUM" "$BIN_DIR/"
+else
+  echo "PDFium not found at $PDFIUM: PDF presentations will not open"
+fi
+
 if [ "${1:-}" = "--reset-db" ] || [ ! -f "$BIN_DIR/spData.sqlite" ]; then
   cp "$REPO/spData.sqlite" "$BIN_DIR/spData.sqlite"
   # The church PC sends the projector to its 3rd monitor; on a Mac use the 2nd one and no extra output

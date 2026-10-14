@@ -22,8 +22,10 @@ permissions:
 
 env:
   QT_VERSION: 5.15.2
-  QT_ARCH: win32_mingw81
-  MINGW_TOOL: qt.tools.win32_mingw810
+  QT_ARCH: win64_mingw81
+  MINGW_TOOL: qt.tools.win64_mingw810
+  # PDF slides are rendered with PDFium (https://github.com/bblanchon/pdfium-binaries)
+  PDFIUM_VERSION: '8076'
 
 jobs:
   build:
@@ -56,10 +58,17 @@ jobs:
           aqt install-qt windows desktop $env:QT_VERSION $env:QT_ARCH -O C:\Qt
           aqt install-tool windows desktop tools_mingw $env:MINGW_TOOL -O C:\Qt
 
+      - name: Download PDFium
+        shell: pwsh
+        run: |
+          Invoke-WebRequest "https://github.com/bblanchon/pdfium-binaries/releases/download/chromium%2F$env:PDFIUM_VERSION/pdfium-win-x64.tgz" -OutFile pdfium.tgz
+          New-Item -ItemType Directory -Force pdfium | Out-Null
+          tar -xzf pdfium.tgz -C pdfium
+
       - name: Build
         shell: pwsh
         run: |
-          $env:PATH = "C:\Qt\$env:QT_VERSION\mingw81_32\bin;C:\Qt\Tools\mingw810_32\bin;$env:PATH"
+          $env:PATH = "C:\Qt\$env:QT_VERSION\mingw81_64\bin;C:\Qt\Tools\mingw810_64\bin;$env:PATH"
           cd source
           qmake softProjector.pro "CONFIG+=release" "CONFIG-=debug_and_release"
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
@@ -71,7 +80,7 @@ jobs:
       - name: Collect program files
         shell: pwsh
         run: |
-          $env:PATH = "C:\Qt\$env:QT_VERSION\mingw81_32\bin;C:\Qt\Tools\mingw810_32\bin;$env:PATH"
+          $env:PATH = "C:\Qt\$env:QT_VERSION\mingw81_64\bin;C:\Qt\Tools\mingw810_64\bin;$env:PATH"
           $dist = "$env:RUNNER_TEMP\dist"
           New-Item -ItemType Directory -Force "$dist\translations" | Out-Null
           Copy-Item source\win32_build\bin\SoftProjector.exe $dist
@@ -80,6 +89,9 @@ jobs:
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           Copy-Item source\translations\softpro_*.qm "$dist\translations"
           Copy-Item source\translations\flag_*.png "$dist\translations"
+          Copy-Item (Get-ChildItem -Recurse pdfium -Filter pdfium.dll | Select-Object -First 1).FullName $dist
+          New-Item -ItemType Directory -Force "$dist\Licenses" | Out-Null
+          Copy-Item pdfium\LICENSE "$dist\Licenses\pdfium.txt"
 
       - uses: actions/upload-artifact@v4
         with:
