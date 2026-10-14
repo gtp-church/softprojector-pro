@@ -19,12 +19,33 @@
 
 #include "generalsettingwidget.hpp"
 #include "ui_generalsettingwidget.h"
+#include "decklinkoutput.hpp"
 
 GeneralSettingWidget::GeneralSettingWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::GeneralSettingWidget)
 {
     ui->setupUi(this);
+
+    // Video format of a Blackmagic card used as the secondary display
+    labelDeckLinkFormat = new QLabel(tr("Card video format:"));
+    comboBoxDeckLinkFormat = new QComboBox;
+    comboBoxDeckLinkFormat->addItems(DeckLinkOutput::formats());
+    int row = ui->gridLayout->rowCount();
+    ui->gridLayout->addWidget(labelDeckLinkFormat, row, 0);
+    ui->gridLayout->addWidget(comboBoxDeckLinkFormat, row, 1);
+}
+
+QString GeneralSettingWidget::cardItem(const QString &card)
+{
+    return tr("Blackmagic card: %1").arg(card);
+}
+
+void GeneralSettingWidget::updateDeckLinkFormat()
+{
+    bool card = !ui->comboBoxDisplayScreen_2->currentData().toString().isEmpty();
+    labelDeckLinkFormat->setEnabled(card);
+    comboBoxDeckLinkFormat->setEnabled(card);
 }
 
 GeneralSettingWidget::~GeneralSettingWidget()
@@ -38,6 +59,7 @@ void GeneralSettingWidget::changeEvent(QEvent *e)
      switch ( e->type() ) {
      case QEvent::LanguageChange:
          ui->retranslateUi(this);
+         labelDeckLinkFormat->setText(tr("Card video format:"));
          break;
      default:
          break;
@@ -67,7 +89,13 @@ void GeneralSettingWidget::loadSettings()
     for(int i(0); i<screen_count;++i)
         monitors << QString("%1 - %2x%3").arg(i+1).arg(d.screenGeometry(i).width()).arg(d.screenGeometry(i).height());
 
-    if(screen_count>1)
+    // A card that is not plugged in now stays chosen
+    cards = DeckLinkOutput::devices();
+    if(mySettings.displayScreen2 == DISPLAY_ON_DECKLINK && !mySettings.deckLinkDevice.isEmpty()
+            && !cards.contains(mySettings.deckLinkDevice))
+        cards.append(mySettings.deckLinkDevice);
+
+    if(screen_count>1 || !cards.isEmpty())
         ui->groupBoxDisplayScreen->setEnabled(true);
     else
         ui->groupBoxDisplayScreen->setEnabled(false);
@@ -78,6 +106,9 @@ void GeneralSettingWidget::loadSettings()
     ui->comboBoxDisplayScreen_2->clear();
     ui->comboBoxDisplayScreen_2->addItem(tr("none"));
     ui->comboBoxDisplayScreen_2->addItems(monitors);
+    foreach(const QString &card, cards)
+        ui->comboBoxDisplayScreen_2->addItem(cardItem(card), card);
+    comboBoxDeckLinkFormat->setCurrentIndex(qBound(0, mySettings.deckLinkFormat, comboBoxDeckLinkFormat->count() - 1));
 
     // Set primary display screen
     if(mySettings.displayScreen<0 || mySettings.displayScreen>=screen_count)
@@ -86,7 +117,9 @@ void GeneralSettingWidget::loadSettings()
         ui->comboBoxDisplayScreen->setCurrentIndex(mySettings.displayScreen);
 
     // Set secondaty display screen
-    if(mySettings.displayScreen2<-1 || mySettings.displayScreen2>=screen_count)
+    if(mySettings.displayScreen2 == DISPLAY_ON_DECKLINK)
+        ui->comboBoxDisplayScreen_2->setCurrentIndex(ui->comboBoxDisplayScreen_2->findData(mySettings.deckLinkDevice));
+    else if(mySettings.displayScreen2<-1 || mySettings.displayScreen2>=screen_count)
         ui->comboBoxDisplayScreen_2->setCurrentIndex(0);
     else
         ui->comboBoxDisplayScreen_2->setCurrentIndex(mySettings.displayScreen2+1);
@@ -130,7 +163,15 @@ GeneralSettings GeneralSettingWidget::getSettings()
         mySettings.currentThemeId = 0;
 
     mySettings.displayScreen = ui->comboBoxDisplayScreen->currentIndex();
-    mySettings.displayScreen2 = monitors.indexOf(ui->comboBoxDisplayScreen_2->currentText());
+    QString card = ui->comboBoxDisplayScreen_2->currentData().toString();
+    if(!card.isEmpty())
+    {
+        mySettings.displayScreen2 = DISPLAY_ON_DECKLINK;
+        mySettings.deckLinkDevice = card;
+    }
+    else
+        mySettings.displayScreen2 = monitors.indexOf(ui->comboBoxDisplayScreen_2->currentText());
+    mySettings.deckLinkFormat = comboBoxDeckLinkFormat->currentIndex();
 
     mySettings.displayControls.buttonSize = ui->comboBoxIconSize->currentIndex();
     mySettings.displayControls.alignmentV = ui->comboBoxControlsAlignV->currentIndex();
@@ -159,6 +200,8 @@ void GeneralSettingWidget::updateSecondaryDisplayScreen()
     ui->comboBoxDisplayScreen_2->clear();
     ui->comboBoxDisplayScreen_2->addItem(tr("None"));
     ui->comboBoxDisplayScreen_2->addItems(monitors2);
+    foreach(const QString &card, cards)
+        ui->comboBoxDisplayScreen_2->addItem(cardItem(card), card);
 
     int i = ui->comboBoxDisplayScreen_2->findText(ds2);
     if(i != -1)
@@ -168,6 +211,7 @@ void GeneralSettingWidget::updateSecondaryDisplayScreen()
         ui->comboBoxDisplayScreen_2->setCurrentIndex(0);
         emit setDisp2Use(false);
     }
+    updateDeckLinkFormat();
 }
 
 void GeneralSettingWidget::on_comboBoxDisplayScreen_activated(const QString &arg1)
@@ -181,6 +225,7 @@ void GeneralSettingWidget::on_comboBoxDisplayScreen_2_activated(int index)
         emit setDisp2Use(false);
     else
         emit setDisp2Use(true);
+    updateDeckLinkFormat();
 }
 
 void GeneralSettingWidget::on_pushButtonAddTheme_clicked()

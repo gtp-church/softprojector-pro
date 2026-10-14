@@ -42,6 +42,7 @@
 #include "schedule.hpp"
 #include "shortcuts.hpp"
 #include "presentationwidget.hpp"
+#include "decklinkoutput.hpp"
 
 class QActionGroup;
 
@@ -141,6 +142,11 @@ private:
     SlideDelegate *slideDelegate;              // Slides across the whole show list
     QAbstractItemDelegate *defaultShowDelegate; // Everything else in the show list
     QAction *returnToPresentationAction;
+
+    // The secondary display can be a Blackmagic card instead of a monitor
+    DeckLinkOutput deckLink;
+    QString deckLinkError; // Shown once for the same problem
+    void setUpDeckLink();
     void setupShortcuts();
     void addShortcut(const QString &id, const char *group, const char *name, QAction *action,
                      const QList<QKeySequence> &defaultKeys);

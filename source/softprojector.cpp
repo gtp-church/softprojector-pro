@@ -301,6 +301,42 @@ void SoftProjector::positionDisplayWindow()
         isSingleScreen = true;
         hasDisplayScreen2 = false;
     }
+    setUpDeckLink();
+}
+
+void SoftProjector::setUpDeckLink()
+{
+    // The secondary display window is not shown on any monitor; what it would show goes to the card
+    pds2->setFrameOutput(0);
+    deckLink.stop();
+    if(mySettings.general.displayScreen2 != DISPLAY_ON_DECKLINK)
+    {
+        deckLinkError.clear();
+        return;
+    }
+
+    QString error;
+    if(!deckLink.start(mySettings.general.deckLinkDevice, mySettings.general.deckLinkFormat, &error))
+    {
+        hasDisplayScreen2 = false;
+        if(error != deckLinkError)
+            QMessageBox::warning(this, tr("Blackmagic card"),
+                                 tr("Could not send video to the Blackmagic card.") + "\n\n" + error);
+        deckLinkError = error;
+        return;
+    }
+    deckLinkError.clear();
+    hasDisplayScreen2 = true;
+    pds2->hide();
+    pds2->setGeometry(QRect(QPoint(0, 0), deckLink.frameSize()));
+    pds2->resetImGenSize();
+    pds2->setFrameOutput(&deckLink);
+    if(theme.passive2.useDisp2settings)
+        pds2->renderPassiveText(theme.passive2.backgroundPix, theme.passive2.useBackground);
+    else
+        pds2->renderPassiveText(theme.passive.backgroundPix, theme.passive.useBackground);
+    if(showing)
+        updateScreen();
 }
 
 void SoftProjector::showDisplayScreen(bool show)
@@ -1083,7 +1119,7 @@ void SoftProjector::on_actionCloseDisplay_triggered()
     if(ui->actionCloseDisplay->isChecked())
     {
         pds1->showFullScreen();
-        if(hasDisplayScreen2)
+        if(hasDisplayScreen2 && mySettings.general.displayScreen2 != DISPLAY_ON_DECKLINK)
         {
             pds2->showFullScreen();
         }

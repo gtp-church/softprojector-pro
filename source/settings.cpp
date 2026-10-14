@@ -708,6 +708,7 @@ GeneralSettings::GeneralSettings()
     displayIsOnTop = false;
     displayScreen = 0;
     displayScreen2 = -1; // interger "-1" mean "None" or not to display
+    deckLinkFormat = 0;
     currentThemeId = 0;
     displayOnStartUp = false;
     settingsChangedAll = false;
@@ -798,6 +799,10 @@ void Settings::loadSettings()
                     general.displayControls.alignmentV = alinglist.at(0).toInt();
                     general.displayControls.alignmentH = alinglist.at(1).toInt();
                 }
+                else if (n == "deckLinkDevice")
+                    general.deckLinkDevice = v;
+                else if (n == "deckLinkFormat")
+                    general.deckLinkFormat = v.toInt();
                 else if (n == "dcOpacity")
                     general.displayControls.opacity = v.toDouble();
             }
@@ -921,6 +926,8 @@ void Settings::saveSettings()
     gset += "\ncurrentThemeId = " + QString::number(general.currentThemeId);
     gset += "\ndisplayScreen = " + QString::number(general.displayScreen);
     gset += "\ndisplayScreen2 = " + QString::number(general.displayScreen2);
+    gset += "\ndeckLinkDevice = " + general.deckLinkDevice;
+    gset += "\ndeckLinkFormat = " + QString::number(general.deckLinkFormat);
     gset += "\ndcIconSize = " + QString::number(general.displayControls.buttonSize);
     gset += QString("\ndcAlignment = %1,%2").arg(general.displayControls.alignmentV).arg(general.displayControls.alignmentH);
     gset += "\ndcOpacity = " + QString::number(general.displayControls.opacity);

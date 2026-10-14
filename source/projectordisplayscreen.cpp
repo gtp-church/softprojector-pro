@@ -19,6 +19,8 @@
 
 #include "projectordisplayscreen.hpp"
 #include "ui_projectordisplayscreen.h"
+#include "decklinkoutput.hpp"
+#include <QPainter>
 
 
 ProjectorDisplayScreen::ProjectorDisplayScreen(QWidget *parent) :
@@ -48,6 +50,27 @@ ProjectorDisplayScreen::ProjectorDisplayScreen(QWidget *parent) :
     backImSwitch1 = backImSwitch2 = textImSwitch1 = textImSwitch2 = false;
     back1to2 = text1to2 = isNewBack = true;
     m_color.setRgb(0,0,0,0);// = QColor(QColor::black());
+    frameOutput = 0;
+}
+
+void ProjectorDisplayScreen::setFrameOutput(DeckLinkOutput *output)
+{
+    frameOutput = output;
+}
+
+QImage ProjectorDisplayScreen::composeFrame()
+{
+    // Same layout as DisplayArea.qml: the background centred if it is smaller, the text over it
+    QImage frame(imGen.getScreenSize(), QImage::Format_RGB32);
+    frame.fill(Qt::black);
+    QPainter painter(&frame);
+    if(!frameBack.isNull() && backType != B_VIDEO)
+        painter.drawPixmap(qMax(0, (frame.width() - frameBack.width()) / 2),
+                           qMax(0, (frame.height() - frameBack.height()) / 2), frameBack);
+    if(!frameText.isNull())
+        painter.drawPixmap(0, 0, frameText);
+    painter.end();
+    return frame;
 }
 
 ProjectorDisplayScreen::~ProjectorDisplayScreen()
@@ -90,6 +113,7 @@ void ProjectorDisplayScreen::setBackPixmap(QPixmap p, int fillMode)
     }
 
     imProvider->setPixMap(p);
+    frameBack = p;
     back1to2 = (!back1to2);
 
     QObject *item1 = dispView->rootObject()->findChild<QObject*>("backImage1");
@@ -145,6 +169,7 @@ void ProjectorDisplayScreen::setBackPixmap(QPixmap p, QColor c)
 void ProjectorDisplayScreen::setTextPixmap(QPixmap p)
 {
     imProvider->setPixMap(p);
+    frameText = p;
     text1to2 = (!text1to2);
 
     QObject *item1 = dispView->rootObject()->findChild<QObject*>("textImage1");
@@ -231,6 +256,9 @@ void ProjectorDisplayScreen::updateScreen()
             QMetaObject::invokeMethod(root,"transitionBack2to1",Q_ARG(QVariant,tranType));
         QMetaObject::invokeMethod(root,"transitionText2to1",Q_ARG(QVariant,tranType));
     }
+
+    if(frameOutput)
+        frameOutput->showFrame(composeFrame());
 }
 
 void ProjectorDisplayScreen::exitSlideClicked()

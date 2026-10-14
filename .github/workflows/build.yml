@@ -65,6 +65,19 @@ jobs:
           New-Item -ItemType Directory -Force pdfium | Out-Null
           tar -xzf pdfium.tgz -C pdfium
 
+      - name: Make the DeckLink API header
+        shell: pwsh
+        run: |
+          # widl (MinGW's IDL compiler) from the MSYS2 that GitHub runners have
+          C:\msys64\usr\bin\bash.exe -lc "pacman -Sy --noconfirm --needed mingw-w64-x86_64-tools-git"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          $dir = "source/3rdparty/decklink"
+          New-Item -ItemType Directory -Force "$dir/generated" | Out-Null
+          # The type library import is only needed for a .tlb, not for the header
+          (Get-Content "$dir/DeckLinkAPI.idl") | Where-Object { $_ -notmatch 'importlib' } | Set-Content "$dir/generated/DeckLinkAPI.idl"
+          C:\msys64\mingw64\bin\widl.exe -I C:/msys64/mingw64/include -I $dir -h -H "$dir/generated/DeckLinkAPI.h" -u -U "$dir/generated/DeckLinkAPI_i.c" "$dir/generated/DeckLinkAPI.idl"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
       - name: Build
         shell: pwsh
         run: |

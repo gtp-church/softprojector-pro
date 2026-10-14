@@ -1987,6 +1987,14 @@ p, li { white-space: pre-wrap; }
         <source>This theme will contain program default settings.</source>
         <translation>Dieses Thema wird die Programm-Standardeinstellungen enthalten.</translation>
     </message>
+    <message>
+        <source>Card video format:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Blackmagic card: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>HelpDialog</name>
@@ -4094,6 +4102,14 @@ Bitte versuchen Sie, ein Upgrade Ihrer Version von softProjector zu machen.</tra
         <source>Back to Presentation</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Blackmagic card</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not send video to the Blackmagic card.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SoftProjectorClass</name>
@@ -5473,6 +5489,29 @@ Bitte versuchen Sie, ein Upgrade Ihrer Version von softProjector zu machen.</tra
     </message>
     <message>
         <source>Slide %1 of %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>DeckLinkOutput</name>
+    <message>
+        <source>The Blackmagic Desktop Video driver is not installed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The card %1 was not found.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The card %1 cannot send video out.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The card %1 cannot send %2, or another program is using it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Blackmagic cards are supported only on Windows.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

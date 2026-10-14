@@ -273,6 +273,9 @@ public:
     qreal opacity;
 };
 
+// displayScreen2 value for a Blackmagic card instead of a monitor
+const int DISPLAY_ON_DECKLINK = -2;
+
 class GeneralSettings
 {   // To store General Program Settings
 public:
@@ -280,6 +283,8 @@ public:
     bool displayIsOnTop;
     int displayScreen; // stores primary display screen location
     int displayScreen2; // stores secondary display screen location
+    QString deckLinkDevice; // Blackmagic card of the secondary display, when displayScreen2 is DISPLAY_ON_DECKLINK
+    int deckLinkFormat;     // Index in DeckLinkOutput::formats()
     DisplayControlsSettings displayControls;
     int currentThemeId;
     bool displayOnStartUp;

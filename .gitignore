@@ -3,3 +3,6 @@ spData.sqlite.bak
 
 # Presentation library of the church computer (not synced through GitHub)
 /Презентации/
+
+# Made from the DeckLink IDL files when building
+/source/3rdparty/decklink/generated/

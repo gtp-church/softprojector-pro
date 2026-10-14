@@ -1221,6 +1221,14 @@ Verse 2
         <source>Show Display Screen on SoftProjector Startup</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Card video format:</source>
+        <translation>Формат сигнала карты:</translation>
+    </message>
+    <message>
+        <source>Blackmagic card: %1</source>
+        <translation>Карта Blackmagic: %1</translation>
+    </message>
 </context>
 <context>
     <name>HelpDialog</name>
@@ -2698,6 +2706,14 @@ Please try again with different file name.</source>
         <source>Back to Presentation</source>
         <translation>Вернуться к презентации</translation>
     </message>
+    <message>
+        <source>Blackmagic card</source>
+        <translation>Карта Blackmagic</translation>
+    </message>
+    <message>
+        <source>Could not send video to the Blackmagic card.</source>
+        <translation>Не удалось вывести изображение на карту Blackmagic.</translation>
+    </message>
 </context>
 <context>
     <name>SoftProjectorClass</name>
@@ -3622,6 +3638,29 @@ Please try again with different file name.</source>
     <message>
         <source>Slide %1 of %2</source>
         <translation>Слайд %1 из %2</translation>
+    </message>
+</context>
+<context>
+    <name>DeckLinkOutput</name>
+    <message>
+        <source>The Blackmagic Desktop Video driver is not installed.</source>
+        <translation>Не установлен драйвер Blackmagic Desktop Video.</translation>
+    </message>
+    <message>
+        <source>The card %1 was not found.</source>
+        <translation>Карта %1 не найдена.</translation>
+    </message>
+    <message>
+        <source>The card %1 cannot send video out.</source>
+        <translation>Карта %1 не умеет выводить видео.</translation>
+    </message>
+    <message>
+        <source>The card %1 cannot send %2, or another program is using it.</source>
+        <translation>Карта %1 не поддерживает формат %2 или занята другой программой (например, OBS).</translation>
+    </message>
+    <message>
+        <source>Blackmagic cards are supported only on Windows.</source>
+        <translation>Карты Blackmagic поддерживаются только на Windows.</translation>
     </message>
 </context>
 </TS>

@@ -42,6 +42,11 @@ private:
     GeneralSettings mySettings;
     Settings allSetings;
     QStringList monitors;
+    QStringList cards; // Blackmagic cards that can be the secondary display
+    QLabel *labelDeckLinkFormat;
+    QComboBox *comboBoxDeckLinkFormat;
+    QString cardItem(const QString &card);
+    void updateDeckLinkFormat();
     QStringList themes;
     QList<int> themeIdList;
 

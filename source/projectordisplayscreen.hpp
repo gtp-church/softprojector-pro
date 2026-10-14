@@ -36,6 +36,8 @@
 #include "videoinfo.hpp"
 //#include "slideshow.hpp"
 
+class DeckLinkOutput;
+
 namespace Ui {
 class ProjectorDisplayScreen;
 }
@@ -68,6 +70,7 @@ public slots:
 
     void positionControls(DisplayControlsSettings & dSettings);
     void setControlsVisible(bool visible);
+    void setFrameOutput(DeckLinkOutput *output);
 
 private slots:
     void setBackPixmap(QPixmap p,int fillMode); // 0 = Strech, 1 = keep aspect, 2 = keep aspect by expanding
@@ -108,6 +111,11 @@ private:
     bool isNewBack, back1to2, text1to2;
     int tranType,backType;
     QColor m_color;
+    // A Blackmagic card shows what this screen would: background and text put together
+    DeckLinkOutput *frameOutput;
+    QPixmap frameBack;
+    QPixmap frameText;
+    QImage composeFrame();
    // DisplayControlsSettings mySettings;
 
     QPixmap back;

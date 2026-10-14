@@ -51,6 +51,7 @@ SOURCES += main.cpp \
     pdfrenderer.cpp \
     presentation.cpp \
     presentationwidget.cpp \
+    decklinkoutput.cpp \
     softprojector.cpp \
     songwidget.cpp \
     biblewidget.cpp \
@@ -100,6 +101,7 @@ HEADERS += softprojector.hpp \
     pdfrenderer.hpp \
     presentation.hpp \
     presentationwidget.hpp \
+    decklinkoutput.hpp \
     songwidget.hpp \
     biblewidget.hpp \
     editwidget.hpp \
@@ -179,4 +181,14 @@ RESOURCES += softprojector.qrc
 
 win32 {
     RC_FILE = softprojector.rc
+
+    # Blackmagic DeckLink output: the API header is made from 3rdparty/decklink/DeckLinkAPI.idl
+    # with widl before building (see .github/workflows/build.yml)
+    DECKLINK_GENERATED = $$PWD/3rdparty/decklink/generated
+    exists($$DECKLINK_GENERATED/DeckLinkAPI.h) {
+        DEFINES += HAVE_DECKLINK
+        INCLUDEPATH += $$DECKLINK_GENERATED
+        SOURCES += $$DECKLINK_GENERATED/DeckLinkAPI_i.c
+        LIBS += -lole32 -loleaut32
+    }
 }

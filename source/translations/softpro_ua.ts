@@ -1924,6 +1924,14 @@ p, li { white-space: pre-wrap; }
         <source>This theme will contain program default settings.</source>
         <translation>Ця тема містить налаштування програми за замовчуванням.</translation>
     </message>
+    <message>
+        <source>Card video format:</source>
+        <translation>Формат сигналу карти:</translation>
+    </message>
+    <message>
+        <source>Blackmagic card: %1</source>
+        <translation>Карта Blackmagic: %1</translation>
+    </message>
 </context>
 <context>
     <name>HelpDialog</name>
@@ -3991,6 +3999,14 @@ You may try upgrading your version of softProjector.</source>
         <source>Back to Presentation</source>
         <translation>Повернутися до презентації</translation>
     </message>
+    <message>
+        <source>Blackmagic card</source>
+        <translation>Карта Blackmagic</translation>
+    </message>
+    <message>
+        <source>Could not send video to the Blackmagic card.</source>
+        <translation>Не вдалося вивести зображення на карту Blackmagic.</translation>
+    </message>
 </context>
 <context>
     <name>SoftProjectorClass</name>
@@ -5347,6 +5363,29 @@ You may try upgrading your version of softProjector.</source>
     <message>
         <source>Slide %1 of %2</source>
         <translation>Слайд %1 з %2</translation>
+    </message>
+</context>
+<context>
+    <name>DeckLinkOutput</name>
+    <message>
+        <source>The Blackmagic Desktop Video driver is not installed.</source>
+        <translation>Не встановлено драйвер Blackmagic Desktop Video.</translation>
+    </message>
+    <message>
+        <source>The card %1 was not found.</source>
+        <translation>Карту %1 не знайдено.</translation>
+    </message>
+    <message>
+        <source>The card %1 cannot send video out.</source>
+        <translation>Карта %1 не вміє виводити відео.</translation>
+    </message>
+    <message>
+        <source>The card %1 cannot send %2, or another program is using it.</source>
+        <translation>Карта %1 не підтримує формат %2 або зайнята іншою програмою (наприклад, OBS).</translation>
+    </message>
+    <message>
+        <source>Blackmagic cards are supported only on Windows.</source>
+        <translation>Карти Blackmagic підтримуються лише на Windows.</translation>
     </message>
 </context>
 </TS>
