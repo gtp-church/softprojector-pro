@@ -150,6 +150,11 @@ private:
     void captureKeyHints();
     void applyShortcutsToUi();
     QList<QPushButton*> goLiveButtons();
+    // Tabs are known by these ids, not by their position: 0 Bible, 1 Songs, 2 Pictures,
+    // 3 Media, 4 Announcements, 5 Presentations
+    QList<QWidget*> tabWidgets();
+    int currentTabId();
+    void showTab(int id);
     void goLiveFromCurrentTab();
     void goLiveScheduleItem(int step);
     void showSlide(int row);

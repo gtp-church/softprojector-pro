@@ -85,10 +85,10 @@ SoftProjector::SoftProjector(QWidget *parent)
     ui->projectTab->clear();
     ui->projectTab->addTab(bibleWidget,QIcon(":/icons/icons/book.png"), tr("Bible (F6)"));
     ui->projectTab->addTab(songWidget,QIcon(":/icons/icons/song_tab.png"), tr("Songs (F7)"));
+    ui->projectTab->addTab(presentationWidget,QIcon(":/icons/icons/screen.png"), tr("Presentations"));
     ui->projectTab->addTab(pictureWidget,QIcon(":/icons/icons/photo.png"),tr("Pictures"));
     ui->projectTab->addTab(mediaPlayer,QIcon(":/icons/icons/video.png"),tr("Media"));
     ui->projectTab->addTab(announceWidget,QIcon(":/icons/icons/announce.png"), tr("Announcements (F8)"));
-    ui->projectTab->addTab(presentationWidget,QIcon(":/icons/icons/screen.png"), tr("Presentations"));
     ui->projectTab->setCurrentIndex(0);
 
 
@@ -1341,12 +1341,12 @@ void SoftProjector::applyShortcutsToUi()
         if(hint.object)
             hint.object->setProperty(hint.property, addKeyHint(hint.text, shortcutKeys(hint.commandId)));
     }
-    ui->projectTab->setTabText(0, addKeyHint(removeKeyHint(tr("Bible (F6)")), shortcutKeys("tabBible")));
-    ui->projectTab->setTabText(1, addKeyHint(removeKeyHint(tr("Songs (F7)")), shortcutKeys("tabSongs")));
-    ui->projectTab->setTabText(2, addKeyHint(tr("Pictures"), shortcutKeys("tabPictures")));
-    ui->projectTab->setTabText(3, addKeyHint(tr("Media"), shortcutKeys("tabMedia")));
-    ui->projectTab->setTabText(4, addKeyHint(removeKeyHint(tr("Announcements (F8)")), shortcutKeys("tabAnnouncements")));
-    ui->projectTab->setTabText(5, addKeyHint(tr("Presentations"), shortcutKeys("tabPresentations")));
+    ui->projectTab->setTabText(ui->projectTab->indexOf(bibleWidget), addKeyHint(removeKeyHint(tr("Bible (F6)")), shortcutKeys("tabBible")));
+    ui->projectTab->setTabText(ui->projectTab->indexOf(songWidget), addKeyHint(removeKeyHint(tr("Songs (F7)")), shortcutKeys("tabSongs")));
+    ui->projectTab->setTabText(ui->projectTab->indexOf(pictureWidget), addKeyHint(tr("Pictures"), shortcutKeys("tabPictures")));
+    ui->projectTab->setTabText(ui->projectTab->indexOf(mediaPlayer), addKeyHint(tr("Media"), shortcutKeys("tabMedia")));
+    ui->projectTab->setTabText(ui->projectTab->indexOf(announceWidget), addKeyHint(removeKeyHint(tr("Announcements (F8)")), shortcutKeys("tabAnnouncements")));
+    ui->projectTab->setTabText(ui->projectTab->indexOf(presentationWidget), addKeyHint(tr("Presentations"), shortcutKeys("tabPresentations")));
     if(returnToPresentationAction)
         returnToPresentationAction->setText(tr("Back to Presentation"));
 }
@@ -1369,9 +1369,25 @@ void SoftProjector::applyShortcuts(ShortcutKeys keys)
     applyShortcutsToUi();
 }
 
+QList<QWidget*> SoftProjector::tabWidgets()
+{
+    return QList<QWidget*>() << bibleWidget << songWidget << pictureWidget << mediaPlayer
+                             << announceWidget << presentationWidget;
+}
+
+int SoftProjector::currentTabId()
+{
+    return tabWidgets().indexOf(ui->projectTab->currentWidget());
+}
+
+void SoftProjector::showTab(int id)
+{
+    ui->projectTab->setCurrentWidget(tabWidgets().value(id));
+}
+
 QList<QPushButton*> SoftProjector::goLiveButtons()
 {
-    // The "Go Live" button of every tab, in tab order
+    // The "Go Live" button of every tab, by tab id
     return QList<QPushButton*>()
             << bibleWidget->findChild<QPushButton*>("btnLive")
             << songWidget->findChild<QPushButton*>("btnLive")
@@ -1383,7 +1399,7 @@ QList<QPushButton*> SoftProjector::goLiveButtons()
 
 void SoftProjector::goLiveFromCurrentTab()
 {
-    QPushButton *button = goLiveButtons().value(ui->projectTab->currentIndex());
+    QPushButton *button = goLiveButtons().value(currentTabId());
     if(button)
         button->click(); // Does nothing if the button is disabled
 }
@@ -1436,7 +1452,7 @@ void SoftProjector::on_projectTab_currentChanged(int index)
 
 void SoftProjector::updateEditActions()
 {
-    int ctab = ui->projectTab->currentIndex();
+    int ctab = currentTabId();
     // ctab - 0=bible, 1=songs, 2=pix, 3=media, 4=annouce
     if(ctab == 0)
     {
@@ -1525,7 +1541,7 @@ void SoftProjector::updateEditActions()
 
 void SoftProjector::on_actionNew_triggered()
 {
-    int ctab = ui->projectTab->currentIndex();
+    int ctab = currentTabId();
     if(ctab == 1)
         newSong();
     else if(ctab == 2)
@@ -1538,7 +1554,7 @@ void SoftProjector::on_actionNew_triggered()
 
 void SoftProjector::on_actionEdit_triggered()
 {
-    int ctab = ui->projectTab->currentIndex();
+    int ctab = currentTabId();
     if(ctab == 1)
         editSong();
     else if(ctab == 2)
@@ -1549,7 +1565,7 @@ void SoftProjector::on_actionEdit_triggered()
 
 void SoftProjector::on_actionCopy_triggered()
 {
-    int ctab = ui->projectTab->currentIndex();
+    int ctab = currentTabId();
     if(ctab == 1)
         copySong();
     else if(ctab == 4)
@@ -1558,7 +1574,7 @@ void SoftProjector::on_actionCopy_triggered()
 
 void SoftProjector::on_actionDelete_triggered()
 {
-    int ctab = ui->projectTab->currentIndex();
+    int ctab = currentTabId();
     if(ctab == 0)
         bibleWidget->clearHistory();
     else if(ctab == 1)
@@ -2063,13 +2079,13 @@ void SoftProjector::on_actionPrint_triggered()
 {
     PrintPreviewDialog* p;
     p = new PrintPreviewDialog(this);
-    if(ui->projectTab->currentIndex() == 0)
+    if(currentTabId() == 0)
     {
         p->setText(mySettings.bibleSets.operatorBible + "," + mySettings.bibleSets.primaryBible,
                    bibleWidget->getCurrentBook(),bibleWidget->getCurrentChapter());
         p->exec();
     }
-    else if (ui->projectTab->currentIndex() == 1)
+    else if (currentTabId() == 1)
     {
         if (songWidget->isSongSelected())
         {
@@ -2087,7 +2103,7 @@ void SoftProjector::on_actionPrint_triggered()
             ms.exec();
         }
     }
-    else if (ui->projectTab->currentIndex() == 4)
+    else if (currentTabId() == 4)
     {
         if(announceWidget->isAnnounceValid())
         {
@@ -2181,7 +2197,7 @@ void SoftProjector::prevSlide()
 
 void SoftProjector::on_actionScheduleAdd_triggered()
 {
-    int ctab = ui->projectTab->currentIndex();
+    int ctab = currentTabId();
     if(ctab == 0) // Bible
     {
         if(bibleWidget->isVerseSelected())
@@ -2303,26 +2319,26 @@ void SoftProjector::on_listWidgetSchedule_doubleClicked(const QModelIndex &index
     }
     else if(s.stype == "song")
     {
-        ui->projectTab->setCurrentIndex(1);
+        showTab(1);
         songWidget->sendToPreviewFromSchedule(s.song);
         setSongList(s.song,0);
         songWidget->counter.addSongCount(s.song);
     }
     else if(s.stype == "slideshow")
     {
-        ui->projectTab->setCurrentIndex(2);
+        showTab(2);
         pictureWidget->sendToPreviewFromSchedule(s.slideshow);
         setPictureList(s.slideshow.slides,0,s.slideshow.name);
     }
     else if(s.stype == "media")
     {
-        ui->projectTab->setCurrentIndex(3);
+        showTab(3);
         mediaPlayer->setMediaFromSchedule(s.media);
         mediaPlayer->goLiveFromSchedule();
     }
     else if(s.stype == "announce")
     {
-        ui->projectTab->setCurrentIndex(4);
+        showTab(4);
         announceWidget->setAnnouncementFromHistory(s.announce);
         setAnnounceText(s.announce,0);
     }
@@ -2341,22 +2357,22 @@ void SoftProjector::on_listWidgetSchedule_itemSelectionChanged()
         }
         else if(s.stype == "song")
         {
-            ui->projectTab->setCurrentIndex(1);
+            showTab(1);
             songWidget->sendToPreviewFromSchedule(s.song);
         }
         else if(s.stype == "slideshow")
         {
-            ui->projectTab->setCurrentIndex(2);
+            showTab(2);
             pictureWidget->sendToPreviewFromSchedule(s.slideshow);
         }
         else if(s.stype == "media")
         {
-            ui->projectTab->setCurrentIndex(3);
+            showTab(3);
             mediaPlayer->setMediaFromSchedule(s.media);
         }
         else if(s.stype == "announce")
         {
-            ui->projectTab->setCurrentIndex(4);
+            showTab(4);
             announceWidget->setAnnouncementFromHistory(s.announce);
         }
     }
