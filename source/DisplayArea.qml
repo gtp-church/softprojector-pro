@@ -114,6 +114,7 @@ Rectangle {
     {
         id: textImage1
         objectName: "textImage1"
+        z: 2 // Above both backgrounds, whichever of them is on top
 //        anchors.fill: parent
 //        fillMode: Image.Stretch
 //        anchors.centerIn: parent
@@ -131,6 +132,7 @@ Rectangle {
     {
         id: textImage2
         objectName: "textImage2"
+        z: 2
 //        anchors.fill: parent
 //        fillMode: Image.Stretch
 //        anchors.centerIn: parent
@@ -148,6 +150,7 @@ Rectangle {
     {
         id: controls
         objectName: "controls"
+        z: 3
 //        opacity: 0.5
         color: "#00000000"
         height: 128
@@ -296,20 +299,22 @@ Rectangle {
         NumberAnimation { target: textImage2; property: "opacity"; to: 0.0; duration: tranTime;}
     }
 
-    ParallelAnimation
+    // The new background fades in over the old one, which stays fully visible until then.
+    // Fading both at once let the black underneath show through: the screen got darker midway.
+    SequentialAnimation
     {
         id:parBackFade1to2
         running: false
-        NumberAnimation { target: backImage1; property: "opacity"; to: 0.0; duration: tranTime;}
         NumberAnimation { target: backImage2; property: "opacity"; to: 1.0; duration: tranTime;}
+        PropertyAction { target: backImage1; property: "opacity"; value: 0.0 }
     }
 
-    ParallelAnimation
+    SequentialAnimation
     {
         id:parBackFade2to1
         running: false
         NumberAnimation { target: backImage1; property: "opacity"; to: 1.0; duration: tranTime;}
-        NumberAnimation { target: backImage2; property: "opacity"; to: 0.0; duration: tranTime;}
+        PropertyAction { target: backImage2; property: "opacity"; value: 0.0 }
     }
 
     ParallelAnimation
@@ -399,12 +404,14 @@ Rectangle {
 
     function stopTransitions()
     {
-        seqFade1to2.stop()
-        seqFade2to1.stop()
-        parFade1to2.stop()
-        parFade2to1.stop()
-        parBackFade1to2.stop()
-        parBackFade2to1.stop()
+        // A new change while a fade is running: finish that fade at once. Stopping it halfway left
+        // text and backgrounds half transparent, and the next fade started from there.
+        seqFade1to2.complete()
+        seqFade2to1.complete()
+        parFade1to2.complete()
+        parFade2to1.complete()
+        parBackFade1to2.complete()
+        parBackFade2to1.complete()
     }
 
     function transitionText1to2(tranType)
@@ -565,6 +572,8 @@ Rectangle {
     {
         if(tranType === 1 || tranType === 2)
         {
+            backImage1.z = 0
+            backImage2.z = 1
             backImage2.opacity = 0.0
             parBackFade1to2.start()
         }
@@ -627,6 +636,8 @@ Rectangle {
     {
         if(tranType === 1 || tranType === 2)
         {
+            backImage2.z = 0
+            backImage1.z = 1
             backImage1.opacity = 0.0
             parBackFade2to1.start()
         }

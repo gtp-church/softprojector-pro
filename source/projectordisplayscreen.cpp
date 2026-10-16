@@ -21,6 +21,9 @@
 #include "ui_projectordisplayscreen.h"
 #include "decklinkoutput.hpp"
 #include <QPainter>
+#ifdef Q_OS_WIN
+#include <QtPlatformHeaders/QWindowsWindowFunctions>
+#endif
 
 
 ProjectorDisplayScreen::ProjectorDisplayScreen(QWidget *parent) :
@@ -289,6 +292,20 @@ void ProjectorDisplayScreen::videoDurationChanged(int duration)
 void ProjectorDisplayScreen::videoPlaybackStateChanged(int state)
 {
     emit videoPlaybackStateChanged((QMediaPlayer::State)state);
+}
+
+void ProjectorDisplayScreen::showEvent(QShowEvent *event)
+{
+#ifdef Q_OS_WIN
+    // A full-screen OpenGL window makes Windows stop composing the desktop for that screen: it
+    // flickers and shows black frames when the operator clicks around, opens a menu or another
+    // window appears. A border (it stays outside the screen) keeps the composing on.
+    // See "Fullscreen OpenGL Based Windows" in the Qt documentation. Set on every show: changing
+    // the window flags (always on top) makes a new native window.
+    if(windowHandle())
+        QWindowsWindowFunctions::setHasBorderInFullScreen(windowHandle(), true);
+#endif
+    QWidget::showEvent(event);
 }
 
 void ProjectorDisplayScreen::keyReleaseEvent(QKeyEvent *event)
