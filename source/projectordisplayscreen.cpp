@@ -260,8 +260,9 @@ void ProjectorDisplayScreen::updateScreen()
         QMetaObject::invokeMethod(root,"transitionText2to1",Q_ARG(QVariant,tranType));
     }
 
-    if(frameOutput)
-        frameOutput->showFrame(composeFrame());
+    QString error;
+    if(frameOutput && !frameOutput->showFrame(composeFrame(), &error))
+        emit frameOutputFailed(error);
 }
 
 void ProjectorDisplayScreen::exitSlideClicked()

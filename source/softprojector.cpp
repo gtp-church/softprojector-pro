@@ -128,6 +128,14 @@ SoftProjector::SoftProjector(QWidget *parent)
     connect(manageDialog, SIGNAL(setMainWaitCursor()), this, SLOT(setWaitCursor()));
     connect(languageGroup, SIGNAL(triggered(QAction*)), this, SLOT(switchLanguage(QAction*)));
     connect(pds1,SIGNAL(exitSlide()),this,SLOT(on_actionHide_triggered()));
+    connect(pds2, &ProjectorDisplayScreen::frameOutputFailed, this, [this](QString error) {
+        // Said once, not for every verse
+        if(error == deckLinkError)
+            return;
+        deckLinkError = error;
+        QMessageBox::warning(this, tr("Blackmagic card"),
+                             tr("Could not send video to the Blackmagic card.") + "\n\n" + error);
+    });
     connect(pds1,SIGNAL(nextSlide()),this,SLOT(nextSlide()));
     connect(pds1,SIGNAL(prevSlide()),this,SLOT(prevSlide()));
     connect(settingsDialog,SIGNAL(updateSettings(GeneralSettings&,Theme&,SlideShowSettings&,
@@ -408,6 +416,10 @@ void SoftProjector::updateSetting(GeneralSettings &g, Theme &t, SlideShowSetting
 
     theme.bible.versions = mySettings.bibleSets;
     theme.bible2.versions = mySettings.bibleSets2;
+
+    // The card did not start before (e.g. another program had it): try again with these settings
+    if(mySettings.general.displayScreen2 == DISPLAY_ON_DECKLINK && !deckLink.isRunning())
+        setUpDeckLink();
 }
 
 void SoftProjector::applySetting(GeneralSettings &g, Theme &t, SlideShowSettings &s,

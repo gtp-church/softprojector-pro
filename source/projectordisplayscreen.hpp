@@ -90,6 +90,7 @@ private slots:
     void playbackStopped();
 
 signals:
+    void frameOutputFailed(QString error); // The Blackmagic card did not take a picture
     void exitSlide();
     void nextSlide();
     void prevSlide();

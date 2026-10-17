@@ -34,9 +34,13 @@ struct Format
     int height;
 };
 
-// The first one is the default
+// The first one is the default. The format must be one the receiver (e.g. an ATEM) works in,
+// otherwise it shows no signal at all.
 const Format outputFormats[] = {
+    {"1080p 50", 0x48703530, 1920, 1080},
     {"1080p 25", 0x48703235, 1920, 1080},
+    {"1080p 59.94", 0x48703539, 1920, 1080},
+    {"1080p 60", 0x48703630, 1920, 1080},
     {"1080p 29.97", 0x48703239, 1920, 1080},
     {"1080p 30", 0x48703330, 1920, 1080},
     {"1080p 24", 0x32347073, 1920, 1080},
@@ -44,6 +48,7 @@ const Format outputFormats[] = {
     {"1080i 59.94", 0x48693539, 1920, 1080},
     {"720p 50", 0x68703530, 1280, 720},
     {"720p 59.94", 0x68703539, 1280, 720},
+    {"720p 60", 0x68703630, 1280, 720},
 };
 const int formatCount = sizeof(outputFormats) / sizeof(outputFormats[0]);
 const unsigned int pixelFormat8BitYUV = 0x32767579; // bmdFormat8BitYUV, '2vuy'
@@ -113,6 +118,11 @@ QByteArray DeckLinkOutput::toUyvy(const QImage &frame)
 }
 
 #ifdef HAVE_DECKLINK
+
+static QString errorCode(HRESULT result)
+{
+    return QString("0x%1").arg(quint32(result), 8, 16, QChar('0'));
+}
 
 static IDeckLinkIterator *createIterator()
 {
@@ -193,12 +203,13 @@ bool DeckLinkOutput::start(const QString &device, int format, QString *error)
         *error = QCoreApplication::translate("DeckLinkOutput", "The card %1 cannot send video out.").arg(device);
         return false;
     }
-    if(output->EnableVideoOutput((BMDDisplayMode)outputFormats[format].mode, bmdVideoOutputFlagDefault) != S_OK)
+    result = output->EnableVideoOutput((BMDDisplayMode)outputFormats[format].mode, bmdVideoOutputFlagDefault);
+    if(result != S_OK)
     {
         output->Release();
         *error = QCoreApplication::translate("DeckLinkOutput",
                                              "The card %1 cannot send %2, or another program is using it.")
-                .arg(device).arg(outputFormats[format].name);
+                .arg(device).arg(outputFormats[format].name) + " (" + errorCode(result) + ")";
         return false;
     }
     d->output = output;
@@ -220,26 +231,39 @@ bool DeckLinkOutput::isRunning() const
     return d->output != nullptr;
 }
 
-void DeckLinkOutput::showFrame(const QImage &frame)
+bool DeckLinkOutput::showFrame(const QImage &frame, QString *error)
 {
     if(!d->output)
-        return;
+        return true;
     QImage image = frame;
     if(image.size() != d->size)
         image = image.scaled(d->size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     QByteArray uyvy = toUyvy(image);
 
     IDeckLinkMutableVideoFrame *videoFrame = nullptr;
-    if(d->output->CreateVideoFrame(d->size.width(), d->size.height(), d->size.width() * 2,
-                                   (BMDPixelFormat)pixelFormat8BitYUV, bmdFrameFlagDefault, &videoFrame) != S_OK)
-        return;
+    HRESULT result = d->output->CreateVideoFrame(d->size.width(), d->size.height(), d->size.width() * 2,
+                                                 (BMDPixelFormat)pixelFormat8BitYUV, bmdFrameFlagDefault, &videoFrame);
+    if(result != S_OK || !videoFrame)
+    {
+        *error = QCoreApplication::translate("DeckLinkOutput", "The card could not make a video frame (%1).")
+                .arg(errorCode(result));
+        return false;
+    }
     void *bytes = nullptr;
-    if(videoFrame->GetBytes(&bytes) == S_OK && bytes)
+    result = videoFrame->GetBytes(&bytes);
+    if(result == S_OK && bytes)
     {
         memcpy(bytes, uyvy.constData(), size_t(uyvy.size()));
-        d->output->DisplayVideoFrameSync(videoFrame);
+        result = d->output->DisplayVideoFrameSync(videoFrame);
     }
     videoFrame->Release();
+    if(result != S_OK)
+    {
+        *error = QCoreApplication::translate("DeckLinkOutput", "The card did not take the picture (%1).")
+                .arg(errorCode(result));
+        return false;
+    }
+    return true;
 }
 
 #else // No DeckLink support in this build (other systems)
@@ -266,9 +290,11 @@ bool DeckLinkOutput::isRunning() const
     return false;
 }
 
-void DeckLinkOutput::showFrame(const QImage &frame)
+bool DeckLinkOutput::showFrame(const QImage &frame, QString *error)
 {
     Q_UNUSED(frame);
+    Q_UNUSED(error);
+    return true;
 }
 
 #endif

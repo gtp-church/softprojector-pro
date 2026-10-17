@@ -1936,6 +1936,10 @@ p, li { white-space: pre-wrap; }
         <source>Blackmagic card: %1</source>
         <translation>Карта Blackmagic: %1</translation>
     </message>
+    <message>
+        <source>The same format as set on the device the card is connected to (e.g. the ATEM switcher). With another format it may show no signal.</source>
+        <translation>Той самий формат, що налаштований на пристрої, до якого підключена карта (наприклад, на ATEM). З іншим форматом сигналу може не бути.</translation>
+    </message>
 </context>
 <context>
     <name>HelpDialog</name>
@@ -5398,6 +5402,14 @@ You may try upgrading your version of softProjector.</source>
     <message>
         <source>Blackmagic cards are supported only on Windows.</source>
         <translation>Карти Blackmagic підтримуються лише на Windows.</translation>
+    </message>
+    <message>
+        <source>The card could not make a video frame (%1).</source>
+        <translation>Карта не змогла створити кадр (%1).</translation>
+    </message>
+    <message>
+        <source>The card did not take the picture (%1).</source>
+        <translation>Карта не прийняла зображення (%1).</translation>
     </message>
 </context>
 </TS>

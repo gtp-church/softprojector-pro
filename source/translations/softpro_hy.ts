@@ -1921,6 +1921,10 @@ Verse-Հատված 2
         <source>Blackmagic card: %1</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>The same format as set on the device the card is connected to (e.g. the ATEM switcher). With another format it may show no signal.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SongSettingWidget</name>
@@ -3646,6 +3650,14 @@ We recommend to resize images to display screen size.</source>
     </message>
     <message>
         <source>Blackmagic cards are supported only on Windows.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The card could not make a video frame (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The card did not take the picture (%1).</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

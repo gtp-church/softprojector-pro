@@ -61,6 +61,8 @@ private:
 
     int current_display_screen;
     int currentDisplayScreen2;
+    QString currentDeckLinkDevice;
+    int currentDeckLinkFormat;
     bool is_always_on_top;
 
     GeneralSettings gsettings;

@@ -77,6 +77,8 @@ void SettingsDialog::loadSettings(GeneralSettings &sets, Theme &thm, SlideShowSe
     is_always_on_top = gsettings.displayIsOnTop;
     current_display_screen = gsettings.displayScreen;
     currentDisplayScreen2 = gsettings.displayScreen2;
+    currentDeckLinkDevice = gsettings.deckLinkDevice;
+    currentDeckLinkFormat = gsettings.deckLinkFormat;
 
     // Set individual items
     generalSettingswidget->setSettings(gsettings);
@@ -170,7 +172,10 @@ bool SettingsDialog::applySettings()
     // Update <display_on_top> only when changed, or when screen location has been changed
     if(is_always_on_top!=gsettings.displayIsOnTop
             || current_display_screen!=gsettings.displayScreen
-            || currentDisplayScreen2!=gsettings.displayScreen2)
+            || currentDisplayScreen2!=gsettings.displayScreen2
+            || (gsettings.displayScreen2 == DISPLAY_ON_DECKLINK
+                && (currentDeckLinkDevice != gsettings.deckLinkDevice
+                    || currentDeckLinkFormat != gsettings.deckLinkFormat)))
     {
         emit positionsDisplayWindow();
     }
@@ -185,6 +190,8 @@ bool SettingsDialog::applySettings()
     is_always_on_top = gsettings.displayIsOnTop;
     current_display_screen = gsettings.displayScreen;
     currentDisplayScreen2 = gsettings.displayScreen2;
+    currentDeckLinkDevice = gsettings.deckLinkDevice;
+    currentDeckLinkFormat = gsettings.deckLinkFormat;
     return true;
 }
 

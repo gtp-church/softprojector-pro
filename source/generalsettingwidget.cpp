@@ -34,6 +34,7 @@ GeneralSettingWidget::GeneralSettingWidget(QWidget *parent) :
     int row = ui->gridLayout->rowCount();
     ui->gridLayout->addWidget(labelDeckLinkFormat, row, 0);
     ui->gridLayout->addWidget(comboBoxDeckLinkFormat, row, 1);
+    comboBoxDeckLinkFormat->setToolTip(tr("The same format as set on the device the card is connected to (e.g. the ATEM switcher). With another format it may show no signal."));
 }
 
 QString GeneralSettingWidget::cardItem(const QString &card)
@@ -60,6 +61,7 @@ void GeneralSettingWidget::changeEvent(QEvent *e)
      case QEvent::LanguageChange:
          ui->retranslateUi(this);
          labelDeckLinkFormat->setText(tr("Card video format:"));
+         comboBoxDeckLinkFormat->setToolTip(tr("The same format as set on the device the card is connected to (e.g. the ATEM switcher). With another format it may show no signal."));
          break;
      default:
          break;

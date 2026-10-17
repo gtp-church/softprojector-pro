@@ -40,7 +40,8 @@ public:
     void stop();
     bool isRunning() const;
     QSize frameSize() const;
-    void showFrame(const QImage &frame);
+    // Returns false and sets error when the card did not take the picture
+    bool showFrame(const QImage &frame, QString *error);
 
     // 8-bit 4:2:2 YUV ("2vuy", BT.709 video levels) as DeckLink cards take it
     static QByteArray toUyvy(const QImage &frame);
