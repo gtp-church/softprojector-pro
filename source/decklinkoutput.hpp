@@ -43,6 +43,9 @@ public:
     // Returns false and sets error when the card did not take the picture
     bool showFrame(const QImage &frame, QString *error);
 
+    // Colour bars with a big caption, to check that the card and what it is connected to work
+    static QImage testPicture(const QSize &size, const QString &caption);
+
     // 8-bit 4:2:2 YUV ("2vuy", BT.709 video levels) as DeckLink cards take it
     static QByteArray toUyvy(const QImage &frame);
 

@@ -45,6 +45,7 @@ private:
     QStringList cards; // Blackmagic cards that can be the secondary display
     QLabel *labelDeckLinkFormat;
     QComboBox *comboBoxDeckLinkFormat;
+    QPushButton *pushButtonTestDeckLink;
     QString cardItem(const QString &card);
     void updateDeckLinkFormat();
     QStringList themes;
@@ -58,6 +59,7 @@ public slots:
 signals:
     void setDisp2Use(bool toUse);
     void themeChanged(int theme_id);
+    void testDeckLink(QString device, int format);
 
 private slots:
     void on_pushButtonDefault_clicked();

@@ -6,3 +6,4 @@ spData.sqlite.bak
 
 # Made from the DeckLink IDL files when building
 /source/3rdparty/decklink/generated/
+/source/buildinfo.h

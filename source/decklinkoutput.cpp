@@ -18,6 +18,7 @@
 
 #include "decklinkoutput.hpp"
 #include <QCoreApplication>
+#include <QPainter>
 
 #ifdef HAVE_DECKLINK
 #include <windows.h>
@@ -86,6 +87,26 @@ QSize DeckLinkOutput::formatSize(int format)
     if(format < 0 || format >= formatCount)
         format = 0;
     return QSize(outputFormats[format].width, outputFormats[format].height);
+}
+
+QImage DeckLinkOutput::testPicture(const QSize &size, const QString &caption)
+{
+    QImage picture(size, QImage::Format_RGB32);
+    QPainter painter(&picture);
+    const QColor bars[] = {QColor(191, 191, 191), QColor(191, 191, 0), QColor(0, 191, 191), QColor(0, 191, 0),
+                           QColor(191, 0, 191), QColor(191, 0, 0), QColor(0, 0, 191)};
+    for(int i(0); i < 7; ++i)
+        painter.fillRect(QRect(i * size.width() / 7, 0, (i + 1) * size.width() / 7 - i * size.width() / 7,
+                               size.height()), bars[i]);
+    QRect box(size.width() / 8, size.height() / 3, size.width() * 3 / 4, size.height() / 3);
+    painter.fillRect(box, Qt::black);
+    QFont font = painter.font();
+    font.setPixelSize(size.height() / 14);
+    font.setBold(true);
+    painter.setFont(font);
+    painter.setPen(Qt::white);
+    painter.drawText(box, Qt::AlignCenter | Qt::TextWordWrap, caption);
+    return picture;
 }
 
 QByteArray DeckLinkOutput::toUyvy(const QImage &frame)

@@ -1940,6 +1940,10 @@ p, li { white-space: pre-wrap; }
         <source>The same format as set on the device the card is connected to (e.g. the ATEM switcher). With another format it may show no signal.</source>
         <translation>Той самий формат, що налаштований на пристрої, до якого підключена карта (наприклад, на ATEM). З іншим форматом сигналу може не бути.</translation>
     </message>
+    <message>
+        <source>Check Card</source>
+        <translation>Перевірити карту</translation>
+    </message>
 </context>
 <context>
     <name>HelpDialog</name>
@@ -4014,6 +4018,22 @@ You may try upgrading your version of softProjector.</source>
     <message>
         <source>Could not send video to the Blackmagic card.</source>
         <translation>Не вдалося вивести зображення на карту Blackmagic.</translation>
+    </message>
+    <message>
+        <source>SoftProjector: card check</source>
+        <translation>SoftProjector: перевірка карти</translation>
+    </message>
+    <message>
+        <source>The card %1 is sending colour bars in %2 now.
+
+If the ATEM shows them, the card works: choose this format and press OK in Settings. If it does not, check the format set on the ATEM and the cable.
+
+Close this message to finish the check.</source>
+        <translation>Карта %1 зараз виводить кольорові смуги у форматі %2.
+
+Якщо ATEM їх показує, карта працює: виберіть цей формат і натисніть OK у налаштуваннях. Якщо ні, перевірте формат, виставлений в ATEM, і кабель.
+
+Закрийте це повідомлення, щоб завершити перевірку.</translation>
     </message>
 </context>
 <context>

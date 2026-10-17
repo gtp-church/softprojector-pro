@@ -78,6 +78,11 @@ jobs:
           C:\msys64\mingw64\bin\widl.exe -I C:/msys64/mingw64/include -I $dir -h -H "$dir/generated/DeckLinkAPI.h" -u -U "$dir/generated/DeckLinkAPI_i.c" "$dir/generated/DeckLinkAPI.idl"
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
+      - name: Name the build
+        shell: pwsh
+        # Shown in the window title, so it is easy to see which build a computer runs
+        run: Set-Content -Path source/buildinfo.h -Value ('#define SP_BUILD_ID "' + $env:GITHUB_SHA.Substring(0, 7) + '"')
+
       - name: Build
         shell: pwsh
         run: |

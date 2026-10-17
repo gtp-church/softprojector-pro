@@ -53,6 +53,7 @@ signals:
     void updateSettings(GeneralSettings& sets, Theme &thm, SlideShowSettings &ssets,
                         BibleVersionSettings& bsets, BibleVersionSettings& bsets2);
     void positionsDisplayWindow();
+    void testDeckLink(QString device, int format);
     void updateScreen();
     void updateShortcuts(ShortcutKeys keys);
 

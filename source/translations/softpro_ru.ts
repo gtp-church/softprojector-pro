@@ -1237,6 +1237,10 @@ Verse 2
         <source>The same format as set on the device the card is connected to (e.g. the ATEM switcher). With another format it may show no signal.</source>
         <translation>Тот же формат, что настроен на устройстве, к которому подключена карта (например, на ATEM). С другим форматом сигнала может не быть.</translation>
     </message>
+    <message>
+        <source>Check Card</source>
+        <translation>Проверить карту</translation>
+    </message>
 </context>
 <context>
     <name>HelpDialog</name>
@@ -2721,6 +2725,22 @@ Please try again with different file name.</source>
     <message>
         <source>Could not send video to the Blackmagic card.</source>
         <translation>Не удалось вывести изображение на карту Blackmagic.</translation>
+    </message>
+    <message>
+        <source>SoftProjector: card check</source>
+        <translation>SoftProjector: проверка карты</translation>
+    </message>
+    <message>
+        <source>The card %1 is sending colour bars in %2 now.
+
+If the ATEM shows them, the card works: choose this format and press OK in Settings. If it does not, check the format set on the ATEM and the cable.
+
+Close this message to finish the check.</source>
+        <translation>Карта %1 сейчас выводит цветные полосы в формате %2.
+
+Если ATEM их показывает, карта работает: выберите этот формат и нажмите OK в настройках. Если нет, проверьте формат, выставленный в ATEM, и кабель.
+
+Закройте это сообщение, чтобы закончить проверку.</translation>
     </message>
 </context>
 <context>

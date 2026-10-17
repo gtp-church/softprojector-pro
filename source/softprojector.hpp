@@ -148,6 +148,7 @@ private:
     DeckLinkOutput deckLink;
     QString deckLinkError; // Shown once for the same problem
     void setUpDeckLink();
+    void testDeckLink(QString device, int format);
     void setupShortcuts();
     void addShortcut(const QString &id, const char *group, const char *name, QAction *action,
                      const QList<QKeySequence> &defaultKeys);

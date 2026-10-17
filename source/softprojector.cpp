@@ -23,6 +23,12 @@
 #include <QRegularExpression>
 #include "softprojector.hpp"
 #include "ui_softprojector.h"
+// Made by the Windows build on GitHub: which commit the program was built from
+#if defined(__has_include)
+#if __has_include("buildinfo.h")
+#include "buildinfo.h"
+#endif
+#endif
 #include "aboutdialog.hpp"
 #include "editannouncementdialog.hpp"
 
@@ -143,6 +149,7 @@ SoftProjector::SoftProjector(QWidget *parent)
             this,SLOT(updateSetting(GeneralSettings&,Theme&,SlideShowSettings&,
                                     BibleVersionSettings&,BibleVersionSettings&)));
     connect(settingsDialog,SIGNAL(positionsDisplayWindow()),this,SLOT(positionDisplayWindow()));
+    connect(settingsDialog, &SettingsDialog::testDeckLink, this, &SoftProjector::testDeckLink);
     connect(settingsDialog,SIGNAL(updateScreen()),this,SLOT(updateScreen()));
     connect(songWidget,SIGNAL(addToSchedule(Song&)),this,SLOT(addToShcedule(Song&)));
     connect(announceWidget,SIGNAL(addToSchedule(Announcement&)),this,SLOT(addToShcedule(Announcement&)));
@@ -215,6 +222,10 @@ SoftProjector::SoftProjector(QWidget *parent)
     connect(mediaControls,SIGNAL(timeChanged(qint64)),this,SLOT(setVideoPosition(qint64)));
 
     version_string = "2.2";
+#ifdef SP_BUILD_ID
+    // The build is named in the title, so it is easy to see whether an update arrived
+    version_string += QString(" (%1)").arg(SP_BUILD_ID);
+#endif
     this->setWindowTitle("SoftProjector " + version_string);
 }
 
@@ -352,6 +363,37 @@ void SoftProjector::setUpDeckLink()
         pds2->renderPassiveText(theme.passive.backgroundPix, theme.passive.useBackground);
     if(showing)
         updateScreen();
+}
+
+void SoftProjector::testDeckLink(QString device, int format)
+{
+    // Colour bars straight to the card, without the texts and backgrounds of the program:
+    // shows whether the card, the cable and the receiver (ATEM) work with this format
+    QWidget *parent = settingsDialog->isVisible() ? static_cast<QWidget *>(settingsDialog) : this;
+    QString formatName = DeckLinkOutput::formats().value(format);
+    QString error;
+    pds2->setFrameOutput(0);
+    deckLink.stop();
+    if(!deckLink.start(device, format, &error)
+            || !deckLink.showFrame(DeckLinkOutput::testPicture(deckLink.frameSize(),
+                                                               tr("SoftProjector: card check") + "\n" + formatName),
+                                   &error))
+    {
+        QMessageBox::warning(parent, tr("Blackmagic card"),
+                             tr("Could not send video to the Blackmagic card.") + "\n\n" + error);
+    }
+    else
+    {
+        QMessageBox::information(parent, tr("Blackmagic card"),
+                                 tr("The card %1 is sending colour bars in %2 now.\n\n"
+                                    "If the ATEM shows them, the card works: choose this format and press OK in "
+                                    "Settings. If it does not, check the format set on the ATEM and the cable.\n\n"
+                                    "Close this message to finish the check.").arg(device, formatName));
+    }
+    // Back to what the saved settings say
+    deckLink.stop();
+    deckLinkError.clear();
+    setUpDeckLink();
 }
 
 void SoftProjector::showDisplayScreen(bool show)

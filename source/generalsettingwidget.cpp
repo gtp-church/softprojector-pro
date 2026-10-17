@@ -31,9 +31,17 @@ GeneralSettingWidget::GeneralSettingWidget(QWidget *parent) :
     labelDeckLinkFormat = new QLabel(tr("Card video format:"));
     comboBoxDeckLinkFormat = new QComboBox;
     comboBoxDeckLinkFormat->addItems(DeckLinkOutput::formats());
+    // Sends colour bars to the card for a moment, with the card and format chosen here
+    pushButtonTestDeckLink = new QPushButton(tr("Check Card"));
+    connect(pushButtonTestDeckLink, &QPushButton::clicked, this, [this]() {
+        emit testDeckLink(ui->comboBoxDisplayScreen_2->currentData().toString(), comboBoxDeckLinkFormat->currentIndex());
+    });
+    QHBoxLayout *formatLayout = new QHBoxLayout;
+    formatLayout->addWidget(comboBoxDeckLinkFormat, 1);
+    formatLayout->addWidget(pushButtonTestDeckLink);
     int row = ui->gridLayout->rowCount();
     ui->gridLayout->addWidget(labelDeckLinkFormat, row, 0);
-    ui->gridLayout->addWidget(comboBoxDeckLinkFormat, row, 1);
+    ui->gridLayout->addLayout(formatLayout, row, 1);
     comboBoxDeckLinkFormat->setToolTip(tr("The same format as set on the device the card is connected to (e.g. the ATEM switcher). With another format it may show no signal."));
 }
 
@@ -47,6 +55,7 @@ void GeneralSettingWidget::updateDeckLinkFormat()
     bool card = !ui->comboBoxDisplayScreen_2->currentData().toString().isEmpty();
     labelDeckLinkFormat->setEnabled(card);
     comboBoxDeckLinkFormat->setEnabled(card);
+    pushButtonTestDeckLink->setEnabled(card);
 }
 
 GeneralSettingWidget::~GeneralSettingWidget()
@@ -61,6 +70,7 @@ void GeneralSettingWidget::changeEvent(QEvent *e)
      case QEvent::LanguageChange:
          ui->retranslateUi(this);
          labelDeckLinkFormat->setText(tr("Card video format:"));
+         pushButtonTestDeckLink->setText(tr("Check Card"));
          comboBoxDeckLinkFormat->setToolTip(tr("The same format as set on the device the card is connected to (e.g. the ATEM switcher). With another format it may show no signal."));
          break;
      default:

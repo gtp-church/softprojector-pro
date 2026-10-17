@@ -27,6 +27,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     generalSettingswidget = new GeneralSettingWidget;
+    connect(generalSettingswidget, &GeneralSettingWidget::testDeckLink, this, &SettingsDialog::testDeckLink);
     passiveSettingwidget = new PassiveSettingWidget;
     bibleSettingswidget = new BibleSettingWidget;
     songSettingswidget = new SongSettingWidget;
