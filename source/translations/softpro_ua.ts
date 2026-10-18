@@ -1944,6 +1944,14 @@ p, li { white-space: pre-wrap; }
         <source>Check Card</source>
         <translation>Перевірити карту</translation>
     </message>
+    <message>
+        <source>Songbook at start:</source>
+        <translation>Збірник під час запуску:</translation>
+    </message>
+    <message>
+        <source>All songbooks</source>
+        <translation>Усі збірники</translation>
+    </message>
 </context>
 <context>
     <name>HelpDialog</name>

@@ -106,4 +106,27 @@ private:
 
 };
 
+class StanzaDelegate: public QStyledItemDelegate
+{
+    // The parts of a song in the preview: the check box of a verse is at the right edge, so verses
+    // and choruses start at the same place. Search words can be highlighted.
+public:
+    StanzaDelegate(QObject *parent = 0);
+    HighlightSearch *highlighter;
+    void setHighlighting(bool on);
+
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+protected:
+    bool editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option,
+                     const QModelIndex &index);
+
+private:
+    QTextDocument *textDocument;
+    bool highlighting;
+    QRect checkRect(const QStyleOptionViewItem &option) const;
+    int checkSpace(const QStyleOptionViewItem &option) const;
+};
+
 #endif // HIGHLIGHT_HPP

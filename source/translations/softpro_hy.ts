@@ -1929,6 +1929,14 @@ Verse-Հատված 2
         <source>Check Card</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Songbook at start:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>All songbooks</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SongSettingWidget</name>

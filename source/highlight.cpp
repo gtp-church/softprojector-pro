@@ -18,6 +18,11 @@
 ***************************************************************************/
 
 #include "highlight.hpp"
+#include <QPainter>
+#include <QKeyEvent>
+#include <QMouseEvent>
+#include <QAbstractTextDocumentLayout>
+#include <QApplication>
 
 Highlight::Highlight(QTextDocument *parent)
     : QSyntaxHighlighter(parent)
@@ -194,4 +199,134 @@ void HighlighterDelegate::drawDisplay(QPainter *painter, const QStyleOptionViewI
     textDocument->drawContents(&p);
 
     painter->drawPixmap(rect, pixmap);
+}
+
+/**********************************************/
+/**** Parts of a song in the song preview  ****/
+/**********************************************/
+StanzaDelegate::StanzaDelegate(QObject *parent)
+    : QStyledItemDelegate(parent), highlighting(false)
+{
+    textDocument = new QTextDocument(this);
+    highlighter = new HighlightSearch(textDocument);
+}
+
+void StanzaDelegate::setHighlighting(bool on)
+{
+    highlighting = on;
+}
+
+static const QStyle *styleOf(const QStyleOptionViewItem &option)
+{
+    return option.widget ? option.widget->style() : QApplication::style();
+}
+
+int StanzaDelegate::checkSpace(const QStyleOptionViewItem &option) const
+{
+    // Kept free on every row, with or without a check box, so all texts wrap the same way
+    return styleOf(option)->pixelMetric(QStyle::PM_IndicatorWidth, &option, option.widget) + 12;
+}
+
+QRect StanzaDelegate::checkRect(const QStyleOptionViewItem &option) const
+{
+    const QStyle *style = styleOf(option);
+    int width = style->pixelMetric(QStyle::PM_IndicatorWidth, &option, option.widget);
+    int height = style->pixelMetric(QStyle::PM_IndicatorHeight, &option, option.widget);
+    return QRect(option.rect.right() - 6 - width, option.rect.top() + (option.rect.height() - height) / 2,
+                 width, height);
+}
+
+void StanzaDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    QStyleOptionViewItem opt = option;
+    initStyleOption(&opt, index);
+    bool checkable = opt.features & QStyleOptionViewItem::HasCheckIndicator;
+    opt.features &= ~QStyleOptionViewItem::HasCheckIndicator;
+    const QStyle *style = styleOf(opt);
+
+    // Background and selection across the whole row, the text left of the check box
+    style->drawPrimitive(QStyle::PE_PanelItemViewItem, &opt, painter, opt.widget);
+    QStyleOptionViewItem textOpt = opt;
+    textOpt.rect.setRight(opt.rect.right() - checkSpace(opt));
+    textOpt.features |= QStyleOptionViewItem::WrapText;
+    if(highlighting)
+    {
+        QRect textRect = style->subElementRect(QStyle::SE_ItemViewItemText, &textOpt, opt.widget);
+        textDocument->setDocumentMargin(0);
+        textDocument->setDefaultFont(opt.font);
+        textDocument->setPlainText(opt.text);
+        textDocument->setTextWidth(textRect.width());
+        QAbstractTextDocumentLayout::PaintContext context;
+        QPalette::ColorGroup group = (opt.state & QStyle::State_Enabled) ? QPalette::Normal : QPalette::Disabled;
+        context.palette.setColor(QPalette::Text, opt.palette.color(group, (opt.state & QStyle::State_Selected)
+                                                                    ? QPalette::HighlightedText : QPalette::Text));
+        painter->save();
+        painter->translate(textRect.topLeft());
+        painter->setClipRect(textRect.translated(-textRect.topLeft()));
+        textDocument->documentLayout()->draw(painter, context);
+        painter->restore();
+    }
+    else
+    {
+        textOpt.backgroundBrush = Qt::NoBrush;
+        textOpt.state &= ~QStyle::State_Selected; // Already drawn, only the text colour stays
+        textOpt.palette.setColor(QPalette::Text, (opt.state & QStyle::State_Selected)
+                                 ? opt.palette.color(QPalette::HighlightedText) : opt.palette.color(QPalette::Text));
+        style->drawControl(QStyle::CE_ItemViewItem, &textOpt, painter, opt.widget);
+    }
+
+    if(checkable)
+    {
+        QStyleOptionViewItem checkOpt = opt;
+        checkOpt.rect = checkRect(opt);
+        checkOpt.state &= ~QStyle::State_HasFocus;
+        checkOpt.state |= (opt.checkState == Qt::Checked) ? QStyle::State_On : QStyle::State_Off;
+        style->drawPrimitive(QStyle::PE_IndicatorItemViewItemCheck, &checkOpt, painter, opt.widget);
+    }
+}
+
+QSize StanzaDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    // As wide as the list: long lines wrap instead of running off to the right, where the
+    // check box has to stay visible
+    QStyleOptionViewItem opt = option;
+    initStyleOption(&opt, index);
+    opt.features &= ~QStyleOptionViewItem::HasCheckIndicator;
+    opt.features |= QStyleOptionViewItem::WrapText;
+    int width = opt.rect.width();
+    if(const QListView *list = qobject_cast<const QListView *>(opt.widget))
+        width = list->viewport()->width() - 2 * list->spacing();
+    int space = checkSpace(opt);
+    opt.rect.setWidth(qMax(1, width - space));
+    QSize size = styleOf(opt)->sizeFromContents(QStyle::CT_ItemViewItem, &opt, QSize(), opt.widget);
+    size.setWidth(qMax(1, width));
+    return size;
+}
+
+bool StanzaDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option,
+                                 const QModelIndex &index)
+{
+    // Like the standard check box handling, with the box at the right
+    if(!(index.flags() & Qt::ItemIsUserCheckable) || !(index.flags() & Qt::ItemIsEnabled))
+        return false;
+    if(event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseButtonRelease
+            || event->type() == QEvent::MouseButtonDblClick)
+    {
+        QMouseEvent *mouse = static_cast<QMouseEvent *>(event);
+        if(mouse->button() != Qt::LeftButton || !checkRect(option).adjusted(-4, -4, 4, 4).contains(mouse->pos()))
+            return false;
+        if(event->type() != QEvent::MouseButtonRelease)
+            return true;
+    }
+    else if(event->type() == QEvent::KeyPress)
+    {
+        int key = static_cast<QKeyEvent *>(event)->key();
+        if(key != Qt::Key_Space && key != Qt::Key_Select)
+            return false;
+    }
+    else
+        return false;
+
+    Qt::CheckState state = index.data(Qt::CheckStateRole).toInt() == Qt::Checked ? Qt::Unchecked : Qt::Checked;
+    return model->setData(index, state, Qt::CheckStateRole);
 }

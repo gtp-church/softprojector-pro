@@ -26,6 +26,13 @@ SongWidget::SongWidget(QWidget *parent) :
     ui(new Ui::SongWidget)
 {
     ui->setupUi(this);
+    // Song parts in the preview: check boxes at the right, search words highlighted
+    highlight = new StanzaDelegate(ui->listPreview);
+    ui->listPreview->setItemDelegate(highlight);
+    // Rows follow the width of the list (long lines wrap), so the check boxes at the right stay in view
+    ui->listPreview->setWordWrap(true);
+    ui->listPreview->setResizeMode(QListView::Adjust);
+    ui->listPreview->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     songs_model = new SongsModel;
     proxy_model = new SongProxyModel(this);
@@ -54,7 +61,6 @@ SongWidget::SongWidget(QWidget *parent) :
     isSpinboxEditing = false;
 
     // set highligher
-    highlight = new HighlighterDelegate(ui->listPreview);
     ui->listWidgetDummy->setVisible(false);
 }
 
@@ -120,13 +126,30 @@ void SongWidget::loadSongbooks()
     // Hide song search items
     ui->comboBoxSearchType->setVisible(false);
     if(ui->pushButtonClearResults->isVisible())
-        ui->listPreview->setItemDelegate(ui->listWidgetDummy->itemDelegate());
+    {
+        highlight->setHighlighting(false);
+        ui->listPreview->viewport()->update();
+    }
     ui->pushButtonClearResults->setVisible(false);
     ui->labelSearchType->setText(tr("Filter Type:"));
     ui->labelFilter->setText(tr("Filter:"));
 
     // update the song spin box and redraw the table:
     on_songbook_menu_currentIndexChanged( ui->songbook_menu->currentIndex() );
+}
+
+void SongWidget::selectSongbook(const QString &songbookId)
+{
+    int index = 0; // All songbooks
+    if(songbookId != "all")
+    {
+        int songbook = songbookList.indexOf(songbookId);
+        if(songbook < 0 && !songbookList.isEmpty())
+            songbook = 0; // Not chosen yet or deleted: the first songbook
+        index = songbook + 1;
+    }
+    if(index < ui->songbook_menu->count())
+        ui->songbook_menu->setCurrentIndex(index);
 }
 
 Song SongWidget::currentSong()
@@ -699,7 +722,8 @@ void SongWidget::on_pushButtonSearch_clicked()
     songs_model->setSongs(search_results);
 
     // setup higligher
-    ui->listPreview->setItemDelegate(highlight);
+    highlight->setHighlighting(true);
+    ui->listPreview->viewport()->update();
     if(type == 2)
         highlight->highlighter->setHighlightText(search_text);
     else
@@ -730,7 +754,8 @@ void SongWidget::on_pushButtonSearch_clicked()
 void SongWidget::on_pushButtonClearResults_clicked()
 {
     // try to reset highliting settings on preview list
-    ui->listPreview->setItemDelegate(ui->listWidgetDummy->itemDelegate());
+    highlight->setHighlighting(false);
+    ui->listPreview->viewport()->update();
 
     ui->lineEditSearch->setPlaceholderText("");
 

@@ -42,6 +42,12 @@ GeneralSettingWidget::GeneralSettingWidget(QWidget *parent) :
     int row = ui->gridLayout->rowCount();
     ui->gridLayout->addWidget(labelDeckLinkFormat, row, 0);
     ui->gridLayout->addLayout(formatLayout, row, 1);
+
+    // Songbook chosen in the Songs tab when the program starts
+    labelStartSongbook = new QLabel(tr("Songbook at start:"));
+    comboBoxStartSongbook = new QComboBox;
+    ui->gridLayout->addWidget(labelStartSongbook, row + 1, 0);
+    ui->gridLayout->addWidget(comboBoxStartSongbook, row + 1, 1);
     comboBoxDeckLinkFormat->setToolTip(tr("The same format as set on the device the card is connected to (e.g. the ATEM switcher). With another format it may show no signal."));
 }
 
@@ -70,6 +76,9 @@ void GeneralSettingWidget::changeEvent(QEvent *e)
      case QEvent::LanguageChange:
          ui->retranslateUi(this);
          labelDeckLinkFormat->setText(tr("Card video format:"));
+         labelStartSongbook->setText(tr("Songbook at start:"));
+         if(comboBoxStartSongbook->count())
+             comboBoxStartSongbook->setItemText(0, tr("All songbooks"));
          pushButtonTestDeckLink->setText(tr("Check Card"));
          comboBoxDeckLinkFormat->setToolTip(tr("The same format as set on the device the card is connected to (e.g. the ATEM switcher). With another format it may show no signal."));
          break;
@@ -88,6 +97,17 @@ void GeneralSettingWidget::loadSettings()
 {
     ui->checkBoxDisplayOnTop->setChecked(mySettings.displayIsOnTop);
     ui->checkBoxDisplayOnStartUp->setChecked(mySettings.displayOnStartUp);
+
+    // Songbooks; without a choice yet, the first one
+    comboBoxStartSongbook->clear();
+    comboBoxStartSongbook->addItem(tr("All songbooks"), "all");
+    QSqlQuery sq("SELECT id, name FROM Songbooks");
+    while(sq.next())
+        comboBoxStartSongbook->addItem(sq.value(1).toString(), sq.value(0).toString());
+    int songbook = comboBoxStartSongbook->findData(mySettings.startSongbook);
+    if(songbook < 0)
+        songbook = comboBoxStartSongbook->count() > 1 ? 1 : 0;
+    comboBoxStartSongbook->setCurrentIndex(songbook);
 
     // Load Themes
     loadThemes();
@@ -184,6 +204,7 @@ GeneralSettings GeneralSettingWidget::getSettings()
     else
         mySettings.displayScreen2 = monitors.indexOf(ui->comboBoxDisplayScreen_2->currentText());
     mySettings.deckLinkFormat = comboBoxDeckLinkFormat->currentIndex();
+    mySettings.startSongbook = comboBoxStartSongbook->currentData().toString();
 
     mySettings.displayControls.buttonSize = ui->comboBoxIconSize->currentIndex();
     mySettings.displayControls.alignmentV = ui->comboBoxControlsAlignV->currentIndex();

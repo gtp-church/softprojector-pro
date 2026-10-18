@@ -46,6 +46,8 @@ private:
     QLabel *labelDeckLinkFormat;
     QComboBox *comboBoxDeckLinkFormat;
     QPushButton *pushButtonTestDeckLink;
+    QLabel *labelStartSongbook;
+    QComboBox *comboBoxStartSongbook;
     QString cardItem(const QString &card);
     void updateDeckLinkFormat();
     QStringList themes;

@@ -285,6 +285,7 @@ public:
     int displayScreen2; // stores secondary display screen location
     QString deckLinkDevice; // Blackmagic card of the secondary display, when displayScreen2 is DISPLAY_ON_DECKLINK
     int deckLinkFormat;     // Index in DeckLinkOutput::formats()
+    QString startSongbook;  // Songbook id chosen in the Songs tab at start, "all" for all; empty: the first songbook
     DisplayControlsSettings displayControls;
     int currentThemeId;
     bool displayOnStartUp;

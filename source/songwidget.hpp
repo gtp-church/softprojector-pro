@@ -40,6 +40,8 @@ public:
     SongCounter counter;
 
 public slots:
+    // "all" for all songbooks, a songbook id, or empty for the first songbook
+    void selectSongbook(const QString &songbookId);
     void retranslateUis();
     void deleteSong();
     Song getSongToEdit();
@@ -106,7 +108,7 @@ private:
 
     QList<int> cat_ids;
     QList<Song> allSongs;
-    HighlighterDelegate *highlight;
+    StanzaDelegate *highlight;
 };
 
 #endif // SONGWIDGET_HPP

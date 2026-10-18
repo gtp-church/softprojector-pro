@@ -474,6 +474,7 @@ void SoftProjector::applySetting(GeneralSettings &g, Theme &t, SlideShowSettings
     bibleWidget->setHiddenSplitterState(mySettings.spMain.bibleHiddenSplitter);
     bibleWidget->setShownSplitterState(mySettings.spMain.bibleShowSplitter);
     songWidget->setSplitterState(mySettings.spMain.songSplitter);
+    songWidget->selectSongbook(mySettings.general.startSongbook);
 
     // Apply window maximized
     if(mySettings.spMain.isWindowMaximized)

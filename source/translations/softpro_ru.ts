@@ -1241,6 +1241,14 @@ Verse 2
         <source>Check Card</source>
         <translation>Проверить карту</translation>
     </message>
+    <message>
+        <source>Songbook at start:</source>
+        <translation>Сборник при запуске:</translation>
+    </message>
+    <message>
+        <source>All songbooks</source>
+        <translation>Все сборники</translation>
+    </message>
 </context>
 <context>
     <name>HelpDialog</name>

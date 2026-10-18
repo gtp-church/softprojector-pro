@@ -803,6 +803,8 @@ void Settings::loadSettings()
                     general.deckLinkDevice = v;
                 else if (n == "deckLinkFormat")
                     general.deckLinkFormat = v.toInt();
+                else if (n == "startSongbook")
+                    general.startSongbook = v;
                 else if (n == "dcOpacity")
                     general.displayControls.opacity = v.toDouble();
             }
@@ -928,6 +930,7 @@ void Settings::saveSettings()
     gset += "\ndisplayScreen2 = " + QString::number(general.displayScreen2);
     gset += "\ndeckLinkDevice = " + general.deckLinkDevice;
     gset += "\ndeckLinkFormat = " + QString::number(general.deckLinkFormat);
+    gset += "\nstartSongbook = " + general.startSongbook;
     gset += "\ndcIconSize = " + QString::number(general.displayControls.buttonSize);
     gset += QString("\ndcAlignment = %1,%2").arg(general.displayControls.alignmentV).arg(general.displayControls.alignmentH);
     gset += "\ndcOpacity = " + QString::number(general.displayControls.opacity);
