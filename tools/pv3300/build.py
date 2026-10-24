@@ -32,7 +32,7 @@ for n in DOUBLE_SPACE_SONGS:
             fixed = re.sub(r'(?<=\S) {2,}(?=\S)', ' ', line)
             if fixed != line: double.append((n, line, fixed))
 auto = AUTO_LABELS + AUTO_DIGITS + AUTO_SPLITS + AUTO_PUNCT + double
-for n, old, new in auto + TYPOS: check(n, old)
+for n, old, new in auto + TYPOS + VERSES: check(n, old)
 
 head1 = """-- Mechanical fixes in the songbook "Песнь Возрождения 3300" (2026-10-25):
 -- the digit 3 typed in place of the letter З (and back), Latin letters that look like Russian ones
@@ -55,6 +55,15 @@ with open(outdir + '/2026-10-25-pv3300-typos.sql', 'w') as f:
     f.write(head2)
     for n, old, new in TYPOS: f.write(stmt(n, old, new) + '\n')
 
+head3 = """-- Merged verses in the songbook "Песнь Возрождения 3300" split again (2026-10-25): the number of the
+-- next verse was scanned as the letter "З" (or a digit) and glued to its first line, so two verses
+-- showed as one; the labels skip that number, so the new verse gets the missing one.
+-- Each fix is skipped when that piece of the hymn was changed since.
+"""
+with open(outdir + '/2026-10-25-pv3300-verses.sql', 'w') as f:
+    f.write(head3)
+    for n, old, new in VERSES: f.write(stmt(n, old, new) + '\n')
+
 # Review table for item 2
 def ctx(n, old):
     for t in songs[n]:
@@ -71,5 +80,5 @@ with open(outdir + '/typos-review.md', 'w') as f:
         line = ctx(n, old).replace('\n', ' / ')
         o, w = old.strip('\n').replace('\n', ' / '), new.strip('\n').replace('\n', ' / ')
         f.write(f'| {n} | {line.replace(o, "**" + o + "**")} | {line.replace(o, "**" + w + "**")} |\n')
-print('mechanical:', len(auto) + 1, 'typos:', len(TYPOS), 'double-space lines:', len(double))
+print('mechanical:', len(auto) + 1, 'typos:', len(TYPOS), 'verses:', len(VERSES), 'double-space lines:', len(double))
 print('\n'.join(problems) or 'all pieces found')
