@@ -69,7 +69,7 @@ jobs:
         shell: pwsh
         run: |
           # widl (MinGW's IDL compiler) from the MSYS2 that GitHub runners have
-          C:\msys64\usr\bin\bash.exe -lc "pacman -Sy --noconfirm --needed mingw-w64-x86_64-tools-git mingw-w64-x86_64-headers-git"
+          C:\msys64\usr\bin\bash.exe -lc "pacman -Sy --noconfirm --needed mingw-w64-x86_64-tools mingw-w64-x86_64-headers"
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           $dir = "source/3rdparty/decklink"
           New-Item -ItemType Directory -Force "$dir/generated" | Out-Null
