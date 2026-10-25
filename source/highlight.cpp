@@ -258,8 +258,8 @@ void StanzaDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option
         textDocument->setTextWidth(textRect.width());
         QAbstractTextDocumentLayout::PaintContext context;
         QPalette::ColorGroup group = (opt.state & QStyle::State_Enabled) ? QPalette::Normal : QPalette::Disabled;
-        context.palette.setColor(QPalette::Text, opt.palette.color(group, (opt.state & QStyle::State_Selected)
-                                                                    ? QPalette::HighlightedText : QPalette::Text));
+        // The text keeps its colour when selected, as in the other lists (black on light blue)
+        context.palette.setColor(QPalette::Text, opt.palette.color(group, QPalette::Text));
         painter->save();
         painter->translate(textRect.topLeft());
         painter->setClipRect(textRect.translated(-textRect.topLeft()));
@@ -269,9 +269,9 @@ void StanzaDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option
     else
     {
         textOpt.backgroundBrush = Qt::NoBrush;
-        textOpt.state &= ~QStyle::State_Selected; // Already drawn, only the text colour stays
-        textOpt.palette.setColor(QPalette::Text, (opt.state & QStyle::State_Selected)
-                                 ? opt.palette.color(QPalette::HighlightedText) : opt.palette.color(QPalette::Text));
+        // Already drawn; the text keeps its colour, as in the other lists (black on light blue).
+        // A left-out verse stays grey.
+        textOpt.state &= ~QStyle::State_Selected;
         style->drawControl(QStyle::CE_ItemViewItem, &textOpt, painter, opt.widget);
     }
 
