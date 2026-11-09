@@ -3599,6 +3599,26 @@ Close this message to finish the check.</source>
 </context>
 <context>
     <name>PresentationWidget</name>
+    <message><source>Select an area from its top-left corner. Drag inside to move; drag the bottom-right corner or use the wheel to resize. Click Go Live to show the result.</source><translation>Выделяйте область от левого верхнего угла вправо и вниз. Двигайте рамку за середину, меняйте размер за правый нижний угол или колёсиком. Нажмите «На экран», чтобы показать результат.</translation></message>
+    <message><source>Zoom area...</source><translation>Увеличить область…</translation></message>
+    <message><source>Reset zoom</source><translation>Сбросить увеличение</translation></message>
+    <message><source>Drag to select an area. Drag inside the frame to move it; use the bottom-right corner or mouse wheel to resize. Changes appear on the screen only after Go Live.</source><translation>Выделите область мышью. Перетаскивайте рамку за середину, меняйте размер за правый нижний угол или колёсиком. Изменения появятся на экране только после нажатия «На экран».</translation></message>
+    <message>
+        <source>Add Pictures...</source>
+        <translation>Добавить изображения…</translation>
+    </message>
+    <message>
+        <source>Append pictures to this presentation. Library presentations are opened as an editable copy.</source>
+        <translation>Добавить изображения к презентации. Для презентации из библиотеки создаётся редактируемая копия.</translation>
+    </message>
+    <message>
+        <source>Drop PDF, PowerPoint or picture files here to open presentations.</source>
+        <translation>Перетащите сюда PDF, PowerPoint или изображения, чтобы открыть презентации.</translation>
+    </message>
+    <message>
+        <source>Pictures (*.png *.jpg *.jpeg *.bmp *.gif)</source>
+        <translation>Изображения (*.png *.jpg *.jpeg *.bmp *.gif)</translation>
+    </message>
     <message>
         <source>Open File...</source>
         <translation>Открыть файл...</translation>
@@ -3676,8 +3696,8 @@ Close this message to finish the check.</source>
         <translation>Размер слайдов (также Ctrl + колёсико мыши)</translation>
     </message>
     <message>
-        <source>Double-click: show on the screens. Ctrl + double-click or Space: look at the slide closely.</source>
-        <translation>Двойной щелчок — на экран. Ctrl + двойной щелчок или пробел — посмотреть слайд крупно.</translation>
+        <source>Double-click: show on the screens. Ctrl + double-click or Space: look at the slide closely. Drop pictures here to append slides.</source>
+        <translation>Двойной щелчок — на экран. Ctrl + двойной щелчок или пробел — посмотреть слайд крупно. Перетащите сюда изображения, чтобы добавить слайды.</translation>
     </message>
     <message>
         <source>Slide %1 of %2</source>

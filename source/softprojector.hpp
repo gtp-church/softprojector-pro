@@ -21,6 +21,7 @@
 #define SOFTPROJECTOR_HPP
 
 #include <QMainWindow>
+#include <QPointer>
 #include "songwidget.hpp"
 #include "biblewidget.hpp"
 #include "announcewidget.hpp"
@@ -137,6 +138,12 @@ private:
     QList<KeyHint> keyHints;
 
     // Presentation on the screens, and the last one shown to go back to after a Bible verse
+    QPointer<SlideZoom> presentationZoomEditor;
+    QWidget *presentationZoomControls = nullptr;
+    int presentationZoomRow = -1;
+    bool presentationZoomPending = false;
+    void clearPresentationZoomEditor();
+    void applyPresentationZoom();
     Presentation currentPresentation;
     Presentation lastPresentation;
     int lastPresentationSlide;

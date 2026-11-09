@@ -27,6 +27,7 @@
 #include <QStyledItemDelegate>
 #include <QWidget>
 #include "presentation.hpp"
+#include "slidezoom.hpp"
 
 class SlideDelegate : public QStyledItemDelegate
 {
@@ -52,6 +53,7 @@ public:
     explicit PresentationWidget(QWidget *parent = 0);
     ~PresentationWidget();
     void setCurrentSlide(const Presentation &presentation, int slide);
+    void setSlideZoom(const Presentation &presentation, int slide, const QRectF &region);
     void openPresentation(const QStringList &files);
     // A window with one slide in a big size, to read it without showing it on the screens
     static void showSlideViewer(QWidget *parent, const Presentation &presentation, int slide);
@@ -74,6 +76,7 @@ protected:
 private slots:
     void openFiles();
     void addToLibrary();
+    void addPictures();
     void removeFromLibrary();
     void presentationSelected(int row);
     void goLive();
@@ -94,6 +97,8 @@ private:
     void addPresentationItem(const Presentation &presentation);
     void loadPresentation(int row);
     void updateButtons();
+    void appendPictures(const QStringList &files);
+    void openSinglePresentation(const QStringList &files);
 
     QListWidget *listPresentations;
     QListWidget *listSlides;
@@ -102,15 +107,16 @@ private:
     QLabel *labelSize;
     QSlider *sliderSize;
     SlideDelegate *slideDelegate;
+    QMap<QString, QRectF> savedZoomRegions;
     QPushButton *pushButtonOpen;
+    QPushButton *pushButtonAddPictures;
     QPushButton *pushButtonAddToLibrary;
     QPushButton *pushButtonRemove;
     QPushButton *pushButtonGoLive;
 
     QList<Presentation> presentations; // Same order as listPresentations
     Presentation current;              // The one whose slides are shown
-    int loadingRow;
-    int pendingRow;
+    bool loadActive;
     QFutureWatcher<LoadResult> loader;
 };
 

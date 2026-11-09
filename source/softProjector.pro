@@ -51,6 +51,7 @@ SOURCES += main.cpp \
     pdfrenderer.cpp \
     presentation.cpp \
     presentationwidget.cpp \
+    slidezoom.cpp \
     decklinkoutput.cpp \
     softprojector.cpp \
     songwidget.cpp \
@@ -101,6 +102,7 @@ HEADERS += softprojector.hpp \
     pdfrenderer.hpp \
     presentation.hpp \
     presentationwidget.hpp \
+    slidezoom.hpp \
     decklinkoutput.hpp \
     songwidget.hpp \
     biblewidget.hpp \

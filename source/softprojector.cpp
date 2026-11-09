@@ -22,6 +22,7 @@
 #include <QImageReader>
 #include <QRegularExpression>
 #include "softprojector.hpp"
+#include "slidezoom.hpp"
 #include "ui_softprojector.h"
 // Made by the Windows build on GitHub: which commit the program was built from
 #if defined(__has_include)
@@ -205,6 +206,19 @@ SoftProjector::SoftProjector(QWidget *parent)
     slideDelegate = new SlideDelegate(ui->listShow);
     ui->listShow->installEventFilter(this);
     ui->listShow->viewport()->installEventFilter(this);
+    presentationZoomControls = new QWidget;
+    QHBoxLayout *zoomLayout = new QHBoxLayout(presentationZoomControls);
+    zoomLayout->setContentsMargins(0, 0, 0, 0);
+    QPushButton *resetZoom = new QPushButton(PresentationWidget::tr("Reset zoom"));
+    QPushButton *applyZoom = new QPushButton(PresentationWidget::tr("Go Live (F5)"));
+    zoomLayout->addWidget(resetZoom);
+    zoomLayout->addWidget(applyZoom);
+    ui->verticalLayoutDisplayControls->addWidget(presentationZoomControls);
+    presentationZoomControls->hide();
+    connect(resetZoom, &QPushButton::clicked, this, [this]() {
+        if(presentationZoomEditor) presentationZoomEditor->reset();
+    });
+    connect(applyZoom, &QPushButton::clicked, this, &SoftProjector::applyPresentationZoom);
     mediaControls->setVisible(false);
     mediaControls->setVolume(100);
     connect(pds1,SIGNAL(videoPositionChanged(qint64)),
@@ -815,6 +829,7 @@ void SoftProjector::setPictureList(QList<SlideShowItem> &image_list,int row,QStr
 
 void SoftProjector::setPresentation(Presentation presentation, int row)
 {
+    clearPresentationZoomEditor();
     // Called to show the slides of a presentation
     pType = PRESENTATION;
     showing = true;
@@ -935,6 +950,9 @@ void SoftProjector::updateScreen()
     // Display the specified row of the show (rightmost) table to
     // the display
     int currentRow = ui->listShow->currentRow();
+    if(presentationZoomControls)
+        presentationZoomControls->setVisible(pType == PRESENTATION);
+    if(pType != PRESENTATION) clearPresentationZoomEditor();
     if(returnToPresentationAction)
         returnToPresentationAction->setEnabled(!lastPresentation.slides.isEmpty() && pType != PRESENTATION);
 
@@ -1100,6 +1118,32 @@ void SoftProjector::showPicture(int currentRow)
     }
 }
 
+void SoftProjector::clearPresentationZoomEditor()
+{
+    if(presentationZoomEditor)
+    {
+        QListWidgetItem *item = ui->listShow->item(presentationZoomRow);
+        if(item && ui->listShow->itemWidget(item) == presentationZoomEditor)
+            ui->listShow->removeItemWidget(item);
+        delete presentationZoomEditor.data();
+    }
+    presentationZoomRow = -1;
+    presentationZoomPending = false;
+}
+
+void SoftProjector::applyPresentationZoom()
+{
+    if(pType != PRESENTATION || !presentationZoomEditor
+            || presentationZoomRow != ui->listShow->currentRow()) return;
+    QRectF region = presentationZoomEditor->selectedRegion();
+    currentPresentation.zoomRegions[presentationZoomRow] = region;
+    lastPresentation = currentPresentation;
+    presentationWidget->setSlideZoom(currentPresentation, presentationZoomRow, region);
+    presentationZoomPending = false;
+    showing = true;
+    updateScreen();
+}
+
 void SoftProjector::showPresentationSlide(int currentRow)
 {
     if(currentRow < 0 || currentRow >= currentPresentation.slides.count())
@@ -1108,7 +1152,24 @@ void SoftProjector::showPresentationSlide(int currentRow)
     // Slides fill the screen keeping their shape; photos are turned the way they were taken
     QImageReader reader(currentPresentation.slides.at(currentRow));
     reader.setAutoTransform(true);
-    QPixmap slide = QPixmap::fromImage(reader.read());
+    QImage image = reader.read();
+    if(!presentationZoomEditor || presentationZoomRow != currentRow)
+    {
+        clearPresentationZoomEditor();
+        presentationZoomRow = currentRow;
+        presentationZoomEditor = new SlideZoom(image, pds1->size());
+        presentationZoomEditor->setMinimumSize(0, 0);
+        presentationZoomEditor->setToolTip(PresentationWidget::tr("Select an area from its top-left corner. Drag inside to move; drag the bottom-right corner or use the wheel to resize. Click Go Live to show the result."));
+        presentationZoomEditor->setSelectedRegion(currentPresentation.zoomRegions.value(currentRow));
+        presentationZoomEditor->regionChanged = [this]() {
+            presentationZoomPending = true;
+            ui->actionShow->setEnabled(true);
+        };
+        ui->listShow->setItemWidget(ui->listShow->item(currentRow), presentationZoomEditor);
+    }
+    QRectF region = currentPresentation.zoomRegions.value(currentRow);
+    QPixmap slide = QPixmap::fromImage(region.isEmpty() ? image
+        : image.copy(SlideZoom::cropRect(image.size(), region)));
     SlideShowSettings slideSettings = mySettings.slideSets;
     slideSettings.fitType = 0;
     slideSettings.expandSmall = true;
@@ -1160,6 +1221,7 @@ void SoftProjector::showVideo()
 
 void SoftProjector::on_actionShow_triggered()
 {
+    if(pType == PRESENTATION && presentationZoomPending) { applyPresentationZoom(); return; }
     showing = true;
     updateScreen();
 }
@@ -1503,6 +1565,7 @@ QList<QPushButton*> SoftProjector::goLiveButtons()
 
 void SoftProjector::goLiveFromCurrentTab()
 {
+    if(pType == PRESENTATION && presentationZoomPending) { applyPresentationZoom(); return; }
     QPushButton *button = goLiveButtons().value(currentTabId());
     if(button)
         button->click(); // Does nothing if the button is disabled

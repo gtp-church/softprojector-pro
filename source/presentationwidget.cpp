@@ -17,7 +17,13 @@
 ***************************************************************************/
 
 #include "presentationwidget.hpp"
+#include "slidezoom.hpp"
+#include <QDialogButtonBox>
 #include <QDir>
+#include <QDragEnterEvent>
+#include <QDropEvent>
+#include <QMimeData>
+#include <QUrl>
 #include <QEvent>
 #include <QFileDialog>
 #include <QFileIconProvider>
@@ -219,13 +225,17 @@ static QString uniquePath(const QString &folder, const QString &fileName)
 }
 
 PresentationWidget::PresentationWidget(QWidget *parent) :
-    QWidget(parent), loadingRow(-1)
+    QWidget(parent), loadActive(false)
 {
     listPresentations = new QListWidget;
+    listPresentations->setObjectName("listPresentations");
     listPresentations->setIconSize(QSize(24, 24));
     pushButtonOpen = new QPushButton(QIcon(":/icons/icons/open.png"), QString());
     pushButtonAddToLibrary = new QPushButton(QIcon(":/icons/icons/add.png"), QString());
     pushButtonRemove = new QPushButton(QIcon(":/icons/icons/remove.png"), QString());
+
+    pushButtonAddPictures = new QPushButton;
+    listPresentations->setAcceptDrops(true);
 
     labelTitle = new QLabel;
     QFont titleFont = labelTitle->font();
@@ -234,6 +244,7 @@ PresentationWidget::PresentationWidget(QWidget *parent) :
     pushButtonGoLive = new QPushButton(QIcon(":/icons/icons/go_live.png"), QString());
     pushButtonGoLive->setObjectName("pushButtonGoLive"); // Found by name for the "Go Live" keys
     listSlides = new QListWidget;
+    listSlides->setObjectName("listSlides");
     listSlides->setViewMode(QListView::IconMode);
     listSlides->setResizeMode(QListView::Adjust);
     listSlides->setMovement(QListView::Static);
@@ -244,6 +255,11 @@ PresentationWidget::PresentationWidget(QWidget *parent) :
     listSlides->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     slideDelegate = new SlideDelegate(listSlides);
     listSlides->setItemDelegate(slideDelegate);
+    listPresentations->setDragDropMode(QAbstractItemView::DropOnly);
+    listSlides->setDragDropMode(QAbstractItemView::DropOnly);
+    listPresentations->viewport()->setAcceptDrops(true);
+    listSlides->viewport()->setAcceptDrops(true);
+    listPresentations->viewport()->installEventFilter(this);
     listSlides->installEventFilter(this);
     listSlides->viewport()->installEventFilter(this);
     labelStatus = new QLabel;
@@ -266,6 +282,7 @@ PresentationWidget::PresentationWidget(QWidget *parent) :
     rightLayout->setContentsMargins(0, 0, 0, 0);
     QHBoxLayout *titleLayout = new QHBoxLayout;
     titleLayout->addWidget(labelTitle, 1);
+    titleLayout->addWidget(pushButtonAddPictures);
     titleLayout->addWidget(pushButtonGoLive);
     rightLayout->addLayout(titleLayout);
     rightLayout->addWidget(listSlides, 1);
@@ -283,6 +300,7 @@ PresentationWidget::PresentationWidget(QWidget *parent) :
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->addWidget(splitter);
 
+    connect(pushButtonAddPictures, &QPushButton::clicked, this, &PresentationWidget::addPictures);
     connect(pushButtonOpen, &QPushButton::clicked, this, &PresentationWidget::openFiles);
     connect(pushButtonAddToLibrary, &QPushButton::clicked, this, &PresentationWidget::addToLibrary);
     connect(pushButtonRemove, &QPushButton::clicked, this, &PresentationWidget::removeFromLibrary);
@@ -314,6 +332,39 @@ PresentationWidget::~PresentationWidget()
 
 bool PresentationWidget::eventFilter(QObject *object, QEvent *event)
 {
+    if((object == listPresentations->viewport() || object == listSlides->viewport())
+            && (event->type() == QEvent::DragEnter || event->type() == QEvent::DragMove
+                || event->type() == QEvent::Drop))
+    {
+        QDropEvent *drop = static_cast<QDropEvent *>(event);
+        QStringList files;
+        bool picturesOnly = true;
+        foreach(const QUrl &url, drop->mimeData()->urls())
+        {
+            if(!url.isLocalFile() || !QFileInfo(url.toLocalFile()).isFile())
+                continue;
+            QString path = url.toLocalFile();
+            if(!PresentationLoader::isPicture(path) && !PresentationLoader::isDocument(path))
+                continue;
+            files.append(path);
+            picturesOnly = picturesOnly && PresentationLoader::isPicture(path);
+        }
+        if(files.isEmpty())
+        {
+            drop->ignore();
+            return true;
+        }
+        drop->setDropAction(Qt::CopyAction);
+        drop->accept();
+        if(event->type() == QEvent::Drop)
+        {
+            if((object == listSlides->viewport()) && picturesOnly)
+                appendPictures(files);
+            else
+                openPresentation(files);
+        }
+        return true;
+    }
     if(object == listSlides->viewport() && event->type() == QEvent::Resize)
         relayoutSlidesLater(listSlides);
     // Ctrl + mouse wheel changes the size of the slides; Space shows the selected slide big
@@ -361,6 +412,9 @@ void PresentationWidget::showEvent(QShowEvent *e)
 
 void PresentationWidget::retranslateUi()
 {
+    pushButtonAddPictures->setText(tr("Add Pictures..."));
+    pushButtonAddPictures->setToolTip(tr("Append pictures to this presentation. Library presentations are opened as an editable copy."));
+    listPresentations->setToolTip(tr("Drop PDF, PowerPoint or picture files here to open presentations."));
     pushButtonOpen->setText(tr("Open File..."));
     pushButtonOpen->setToolTip(tr("Open a PDF, a PowerPoint presentation or pictures from any folder"));
     pushButtonAddToLibrary->setText(tr("Add to Library"));
@@ -368,9 +422,9 @@ void PresentationWidget::retranslateUi()
     pushButtonGoLive->setText(tr("Go Live (F5)"));
     labelSize->setText(tr("Size:"));
     sliderSize->setToolTip(tr("Size of the slides (also Ctrl + mouse wheel)"));
-    listSlides->setToolTip(tr("Double-click: show on the screens. Ctrl + double-click or Space: look at the slide closely."));
+    listSlides->setToolTip(tr("Double-click: show on the screens. Ctrl + double-click or Space: look at the slide closely. Drop pictures here to append slides."));
     updateButtons();
-    if(current.slides.isEmpty() && !loader.isRunning())
+    if(current.slides.isEmpty() && !loadActive)
         labelStatus->setText(tr("Choose a presentation on the left or open a file."));
 }
 
@@ -429,9 +483,9 @@ void PresentationWidget::presentationSelected(int row)
 void PresentationWidget::loadPresentation(int row)
 {
     // A presentation is loaded in a worker thread; another one chosen meanwhile is loaded after it
-    if(loader.isRunning())
+    if(loadActive)
         return;
-    loadingRow = row;
+    loadActive = true;
     Presentation p = presentations.at(row);
     current = Presentation();
     listSlides->clear();
@@ -457,7 +511,13 @@ void PresentationWidget::loadPresentation(int row)
 
 void PresentationWidget::loadFinished()
 {
+    loadActive = false;
     LoadResult result = loader.result();
+    if(listPresentations->currentRow() < 0)
+    {
+        updateButtons();
+        return;
+    }
 
     // Another presentation was chosen while this one was loading
     int row = listPresentations->currentRow();
@@ -475,7 +535,11 @@ void PresentationWidget::loadFinished()
         return;
     }
 
+    listSlides->clear();
     current = result.presentation;
+    for(int i = 0; i < current.slides.count(); ++i)
+        if(savedZoomRegions.contains(current.slides.at(i)))
+            current.zoomRegions[i] = savedZoomRegions.value(current.slides.at(i));
     labelTitle->setText(current.name);
     for(int i(0); i < current.slides.count(); ++i)
         listSlides->addItem(new QListWidgetItem(QIcon(current.thumbnails.at(i)), QString::number(i + 1)));
@@ -489,10 +553,18 @@ void PresentationWidget::updateButtons()
     int row = listPresentations->currentRow();
     bool valid = (row >= 0 && row < presentations.count());
     bool inLibrary = valid && !presentations.at(row).libraryPath.isEmpty();
+    pushButtonAddPictures->setEnabled(!valid || !presentations.at(row).isDocument());
     pushButtonAddToLibrary->setEnabled(valid && !inLibrary);
     pushButtonRemove->setEnabled(valid);
     pushButtonRemove->setText(inLibrary || !valid ? tr("Delete from Library") : tr("Close"));
     pushButtonGoLive->setEnabled(!current.slides.isEmpty());
+}
+
+void PresentationWidget::setSlideZoom(const Presentation &presentation, int slide, const QRectF &region)
+{
+    if(slide < 0 || slide >= presentation.slides.count()) return;
+    savedZoomRegions[presentation.slides.at(slide)] = region;
+    if(keyOf(presentation) == keyOf(current)) current.zoomRegions[slide] = region;
 }
 
 void PresentationWidget::goLive()
@@ -524,7 +596,65 @@ void PresentationWidget::openFiles()
 
 void PresentationWidget::openPresentation(const QStringList &files)
 {
+    QStringList pictures;
+    foreach(const QString &file, files)
+    {
+        if(PresentationLoader::isDocument(file))
+            openSinglePresentation(QStringList() << file);
+        else if(PresentationLoader::isPicture(file))
+            pictures.append(file);
+    }
+    if(!pictures.isEmpty())
+        openSinglePresentation(pictures);
+}
+
+void PresentationWidget::addPictures()
+{
+    QStringList files = QFileDialog::getOpenFileNames(this, tr("Add Pictures..."), QString(),
+                                                    tr("Pictures (*.png *.jpg *.jpeg *.bmp *.gif)"));
+    if(!files.isEmpty())
+        appendPictures(files);
+}
+
+void PresentationWidget::appendPictures(const QStringList &files)
+{
+    int row = listPresentations->currentRow();
+    if(row < 0 || row >= presentations.count() || presentations.at(row).isDocument())
+    {
+        openPresentation(files);
+        return;
+    }
+    Presentation p = presentations.at(row);
+    Presentation added = PresentationLoader::fromFiles(files);
+    foreach(const QString &file, added.sources)
+    {
+        if(!p.sources.contains(file))
+            p.sources.append(file);
+    }
+    if(p.sources == presentations.at(row).sources)
+        return;
+    // Keep the saved library version intact until the user saves the edited copy.
+    if(!p.libraryPath.isEmpty())
+    {
+        openSinglePresentation(p.sources);
+        return;
+    }
+    p.slides.clear();
+    p.thumbnails.clear();
+    presentations[row] = p;
+    loadPresentation(row);
+}
+
+void PresentationWidget::openSinglePresentation(const QStringList &files)
+{
     Presentation p = PresentationLoader::fromFiles(files);
+    if(!p.isDocument())
+    {
+        p.sources.clear();
+        foreach(const QString &file, files)
+            if(PresentationLoader::isPicture(file))
+                p.sources.append(QFileInfo(file).absoluteFilePath());
+    }
     if(p.sources.isEmpty())
         return;
     for(int i(0); i < presentations.count(); ++i)
@@ -575,9 +705,12 @@ void PresentationWidget::addToLibrary()
             return;
         target = uniquePath(library, name);
         QDir().mkpath(target);
+        int index = 0;
         foreach(const QString &picture, p.sources)
         {
-            if(!QFile::copy(picture, target + "/" + QFileInfo(picture).fileName()))
+            QString fileName = QString("%1_%2").arg(++index, 6, 10, QLatin1Char('0'))
+                    .arg(QFileInfo(picture).fileName());
+            if(!QFile::copy(picture, target + "/" + fileName))
             {
                 QMessageBox::warning(this, tr("Add to Library"), tr("Could not copy %1 to the library.").arg(picture));
                 return;
@@ -616,13 +749,19 @@ void PresentationWidget::removeFromLibrary()
         }
     }
 
-    presentations.removeAt(row);
-    if(keyOf(p) == keyOf(current))
+    {
+        QSignalBlocker blocker(listPresentations);
+        delete listPresentations->takeItem(row);
+        presentations.removeAt(row);
+        listPresentations->setCurrentRow(-1);
+    }
+    if(presentations.isEmpty() || keyOf(p) == keyOf(current))
     {
         current = Presentation();
         listSlides->clear();
         labelTitle->clear();
         labelStatus->setText(tr("Choose a presentation on the left or open a file."));
     }
-    reloadLibrary();
+    listPresentations->setCurrentRow(qMin(row, presentations.count() - 1));
+    updateButtons();
 }

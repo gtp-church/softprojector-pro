@@ -20,6 +20,8 @@
 #define PRESENTATION_HPP
 
 #include <QList>
+#include <QMap>
+#include <QRectF>
 #include <QString>
 #include <QStringList>
 #include <functional>
@@ -31,6 +33,7 @@ public:
     Presentation();
     bool isDocument() const;
 
+    QMap<int, QRectF> zoomRegions; // Normalized crops; empty means the full slide
     QString name;
     QStringList sources;    // The PDF or PowerPoint file, or the picture files in slide order
     QString libraryPath;    // File or folder in the library; empty for a presentation opened from elsewhere
