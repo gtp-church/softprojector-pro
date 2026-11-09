@@ -186,6 +186,14 @@ SoftProjector::SoftProjector(QWidget *parent)
     ui->toolBarShow->addAction(ui->actionClear);
     ui->toolBarShow->addAction(ui->actionHide);
     ui->toolBarShow->addAction(ui->actionCloseDisplay);
+    resetPresentationZoomAction = ui->toolBarShow->addAction(
+                QIcon(":/icons/icons/FitToScreen.png"), PresentationWidget::tr("Reset zoom"));
+    resetPresentationZoomAction->setObjectName("resetPresentationZoomAction");
+    resetPresentationZoomAction->setEnabled(false);
+    connect(resetPresentationZoomAction, &QAction::triggered, this, [this]() {
+        if(pType == PRESENTATION && presentationZoomEditor)
+            presentationZoomEditor->reset();
+    });
 
     ui->actionShow->setEnabled(false);
     ui->actionHide->setEnabled(false);
@@ -206,19 +214,6 @@ SoftProjector::SoftProjector(QWidget *parent)
     slideDelegate = new SlideDelegate(ui->listShow);
     ui->listShow->installEventFilter(this);
     ui->listShow->viewport()->installEventFilter(this);
-    presentationZoomControls = new QWidget;
-    QHBoxLayout *zoomLayout = new QHBoxLayout(presentationZoomControls);
-    zoomLayout->setContentsMargins(0, 0, 0, 0);
-    QPushButton *resetZoom = new QPushButton(PresentationWidget::tr("Reset zoom"));
-    QPushButton *applyZoom = new QPushButton(PresentationWidget::tr("Go Live (F5)"));
-    zoomLayout->addWidget(resetZoom);
-    zoomLayout->addWidget(applyZoom);
-    ui->verticalLayoutDisplayControls->addWidget(presentationZoomControls);
-    presentationZoomControls->hide();
-    connect(resetZoom, &QPushButton::clicked, this, [this]() {
-        if(presentationZoomEditor) presentationZoomEditor->reset();
-    });
-    connect(applyZoom, &QPushButton::clicked, this, &SoftProjector::applyPresentationZoom);
     mediaControls->setVisible(false);
     mediaControls->setVolume(100);
     connect(pds1,SIGNAL(videoPositionChanged(qint64)),
@@ -950,8 +945,8 @@ void SoftProjector::updateScreen()
     // Display the specified row of the show (rightmost) table to
     // the display
     int currentRow = ui->listShow->currentRow();
-    if(presentationZoomControls)
-        presentationZoomControls->setVisible(pType == PRESENTATION);
+    if(resetPresentationZoomAction)
+        resetPresentationZoomAction->setEnabled(pType == PRESENTATION && currentRow >= 0);
     if(pType != PRESENTATION) clearPresentationZoomEditor();
     if(returnToPresentationAction)
         returnToPresentationAction->setEnabled(!lastPresentation.slides.isEmpty() && pType != PRESENTATION);
@@ -1515,6 +1510,8 @@ void SoftProjector::applyShortcutsToUi()
     ui->projectTab->setTabText(ui->projectTab->indexOf(presentationWidget), addKeyHint(tr("Presentations"), shortcutKeys("tabPresentations")));
     if(returnToPresentationAction)
         returnToPresentationAction->setText(tr("Back to Presentation"));
+    if(resetPresentationZoomAction)
+        resetPresentationZoomAction->setText(PresentationWidget::tr("Reset zoom"));
 }
 
 void SoftProjector::applyShortcuts(ShortcutKeys keys)

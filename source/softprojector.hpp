@@ -139,7 +139,7 @@ private:
 
     // Presentation on the screens, and the last one shown to go back to after a Bible verse
     QPointer<SlideZoom> presentationZoomEditor;
-    QWidget *presentationZoomControls = nullptr;
+    QAction *resetPresentationZoomAction = nullptr;
     int presentationZoomRow = -1;
     bool presentationZoomPending = false;
     void clearPresentationZoomEditor();
