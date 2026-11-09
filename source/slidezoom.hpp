@@ -32,6 +32,8 @@ private:
     QRectF frame;
     QRectF originalFrame;
     QPointF anchor;
+    QPointF pressPosition;
+    bool dragging = false;
     enum Mode { Idle, Select, Move, Resize } mode = Idle;
 };
 #endif

@@ -3599,6 +3599,11 @@ Close this message to finish the check.</source>
 </context>
 <context>
     <name>PresentationWidget</name>
+    <message><source>Output screen:</source><translation>Экран вывода:</translation></message>
+    <message><source>Main screen</source><translation>Основной экран</translation></message>
+    <message><source>Additional screen</source><translation>Дополнительный экран</translation></message>
+    <message><source>Choose the output screen, then click Go Live.</source><translation>Выберите экран вывода, затем нажмите «На экран».</translation></message>
+    <message><source>The additional screen is not enabled. Configure it in the display settings or choose the main screen.</source><translation>Дополнительный экран не включён. Настройте его в параметрах экранов или выберите основной экран.</translation></message>
     <message><source>Select an area from its top-left corner. Drag inside to move; drag the bottom-right corner or use the wheel to resize. Click Go Live to show the result.</source><translation>Выделяйте область от левого верхнего угла вправо и вниз. Двигайте рамку за середину, меняйте размер за правый нижний угол или колёсиком. Нажмите «На экран», чтобы показать результат.</translation></message>
     <message><source>Zoom area...</source><translation>Увеличить область…</translation></message>
     <message><source>Reset zoom</source><translation>Сбросить увеличение</translation></message>

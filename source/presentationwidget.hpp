@@ -21,6 +21,7 @@
 
 #include <QFutureWatcher>
 #include <QLabel>
+#include <QComboBox>
 #include <QListWidget>
 #include <QPushButton>
 #include <QSlider>
@@ -103,6 +104,8 @@ private:
     QListWidget *listPresentations;
     QListWidget *listSlides;
     QLabel *labelTitle;
+    QLabel *labelOutput;
+    QComboBox *comboOutput;
     QLabel *labelStatus;
     QLabel *labelSize;
     QSlider *sliderSize;

@@ -1,5 +1,6 @@
 #include "slidezoom.hpp"
 #include <QMouseEvent>
+#include <QApplication>
 #include <QWheelEvent>
 #include <QPainter>
 #include <QPainterPath>
@@ -103,6 +104,8 @@ void SlideZoom::paintEvent(QPaintEvent *)
 void SlideZoom::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() != Qt::LeftButton || image.isNull() || !imageRect().contains(event->localPos())) return;
+    pressPosition = event->localPos();
+    dragging = false;
     anchor = imagePoint(event->localPos());
     originalFrame = frame;
     qreal handle = 12 * image.width() / imageRect().width();
@@ -117,6 +120,9 @@ void SlideZoom::mousePressEvent(QMouseEvent *event)
 void SlideZoom::mouseMoveEvent(QMouseEvent *event)
 {
     if(mode == Idle || image.isNull()) return;
+    if(!dragging && (event->localPos() - pressPosition).manhattanLength() < QApplication::startDragDistance())
+        return;
+    dragging = true;
     QPointF point = imagePoint(event->localPos());
     if(mode == Move)
         frame = fittedFrame(originalFrame.center() + point - anchor, originalFrame.width());
@@ -135,7 +141,12 @@ void SlideZoom::mouseMoveEvent(QMouseEvent *event)
 
 void SlideZoom::mouseReleaseEvent(QMouseEvent *event)
 {
-    if(event->button() == Qt::LeftButton) { mouseMoveEvent(event); mode = Idle; if(regionChanged) regionChanged(); }
+    if(event->button() != Qt::LeftButton || mode == Idle) return;
+    mouseMoveEvent(event);
+    bool changed = dragging && frame != originalFrame;
+    mode = Idle;
+    dragging = false;
+    if(changed && regionChanged) regionChanged();
 }
 
 void SlideZoom::wheelEvent(QWheelEvent *event)

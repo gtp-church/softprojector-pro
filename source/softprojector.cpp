@@ -824,6 +824,12 @@ void SoftProjector::setPictureList(QList<SlideShowItem> &image_list,int row,QStr
 
 void SoftProjector::setPresentation(Presentation presentation, int row)
 {
+    if(presentation.output == Presentation::AdditionalScreen && !hasDisplayScreen2)
+    {
+        QMessageBox::warning(this, PresentationWidget::tr("Additional screen"),
+            PresentationWidget::tr("The additional screen is not enabled. Configure it in the display settings or choose the main screen."));
+        return;
+    }
     clearPresentationZoomEditor();
     // Called to show the slides of a presentation
     pType = PRESENTATION;
@@ -1144,6 +1150,10 @@ void SoftProjector::showPresentationSlide(int currentRow)
     if(currentRow < 0 || currentRow >= currentPresentation.slides.count())
         return;
 
+    bool additional = currentPresentation.output == Presentation::AdditionalScreen;
+    if(additional && !hasDisplayScreen2) return;
+    ProjectorDisplayScreen *target = additional ? pds2 : pds1;
+
     // Slides fill the screen keeping their shape; photos are turned the way they were taken
     QImageReader reader(currentPresentation.slides.at(currentRow));
     reader.setAutoTransform(true);
@@ -1152,7 +1162,7 @@ void SoftProjector::showPresentationSlide(int currentRow)
     {
         clearPresentationZoomEditor();
         presentationZoomRow = currentRow;
-        presentationZoomEditor = new SlideZoom(image, pds1->size());
+        presentationZoomEditor = new SlideZoom(image, target->size());
         presentationZoomEditor->setMinimumSize(0, 0);
         presentationZoomEditor->setToolTip(PresentationWidget::tr("Select an area from its top-left corner. Drag inside to move; drag the bottom-right corner or use the wheel to resize. Click Go Live to show the result."));
         presentationZoomEditor->setSelectedRegion(currentPresentation.zoomRegions.value(currentRow));
@@ -1168,9 +1178,17 @@ void SoftProjector::showPresentationSlide(int currentRow)
     SlideShowSettings slideSettings = mySettings.slideSets;
     slideSettings.fitType = 0;
     slideSettings.expandSmall = true;
-    pds1->renderSlideShow(slide, slideSettings);
-    if(hasDisplayScreen2)
-        pds2->renderSlideShow(slide, slideSettings);
+    target->renderSlideShow(slide, slideSettings);
+    // Do not leave a previous slide on the output that is no longer selected.
+    if(additional)
+        pds1->renderPassiveText(theme.passive.backgroundPix, theme.passive.useBackground);
+    else if(hasDisplayScreen2)
+    {
+        if(theme.passive2.useDisp2settings)
+            pds2->renderPassiveText(theme.passive2.backgroundPix, theme.passive2.useBackground);
+        else
+            pds2->renderPassiveText(theme.passive.backgroundPix, theme.passive.useBackground);
+    }
 
     lastPresentationSlide = currentRow;
     // The slide on the screens at the top of the list, the next ones below it

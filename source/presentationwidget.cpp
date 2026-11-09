@@ -237,6 +237,12 @@ PresentationWidget::PresentationWidget(QWidget *parent) :
     pushButtonAddPictures = new QPushButton;
     listPresentations->setAcceptDrops(true);
 
+    labelOutput = new QLabel;
+    comboOutput = new QComboBox;
+    comboOutput->setObjectName("presentationOutput");
+    comboOutput->addItem(QString(), Presentation::MainScreen);
+    comboOutput->addItem(QString(), Presentation::AdditionalScreen);
+    labelOutput->setBuddy(comboOutput);
     labelTitle = new QLabel;
     QFont titleFont = labelTitle->font();
     titleFont.setBold(true);
@@ -282,6 +288,8 @@ PresentationWidget::PresentationWidget(QWidget *parent) :
     rightLayout->setContentsMargins(0, 0, 0, 0);
     QHBoxLayout *titleLayout = new QHBoxLayout;
     titleLayout->addWidget(labelTitle, 1);
+    titleLayout->addWidget(labelOutput);
+    titleLayout->addWidget(comboOutput);
     titleLayout->addWidget(pushButtonAddPictures);
     titleLayout->addWidget(pushButtonGoLive);
     rightLayout->addLayout(titleLayout);
@@ -412,6 +420,10 @@ void PresentationWidget::showEvent(QShowEvent *e)
 
 void PresentationWidget::retranslateUi()
 {
+    labelOutput->setText(tr("Output screen:"));
+    comboOutput->setItemText(0, tr("Main screen"));
+    comboOutput->setItemText(1, tr("Additional screen"));
+    comboOutput->setToolTip(tr("Choose the output screen, then click Go Live."));
     pushButtonAddPictures->setText(tr("Add Pictures..."));
     pushButtonAddPictures->setToolTip(tr("Append pictures to this presentation. Library presentations are opened as an editable copy."));
     listPresentations->setToolTip(tr("Drop PDF, PowerPoint or picture files here to open presentations."));
@@ -571,6 +583,7 @@ void PresentationWidget::goLive()
 {
     if(current.slides.isEmpty())
         return;
+    current.output = static_cast<Presentation::Output>(comboOutput->currentData().toInt());
     emit sendPresentation(current, qMax(0, listSlides->currentRow()));
 }
 

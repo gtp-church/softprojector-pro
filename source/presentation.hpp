@@ -33,6 +33,8 @@ public:
     Presentation();
     bool isDocument() const;
 
+    enum Output { MainScreen, AdditionalScreen };
+    Output output = MainScreen;
     QMap<int, QRectF> zoomRegions; // Normalized crops; empty means the full slide
     QString name;
     QStringList sources;    // The PDF or PowerPoint file, or the picture files in slide order
